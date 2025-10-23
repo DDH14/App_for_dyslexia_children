@@ -1,0 +1,10 @@
+{
+  "name": "Đọc Dễ",
+  "short_name": "Đọc Dễ",
+  "start_url": "/docde/",
+  "scope": "/docde/",
+  "display": "standalone",
+  "background_color": "#FFF3D6",
+  "theme_color": "#FFF3D6",
+  "icons": []
+}

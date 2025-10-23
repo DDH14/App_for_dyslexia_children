@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Đọc Dễ – Hỗ trợ trẻ rối loạn đọc</title>
+  <meta name="description" content="Luyện âm vị, thẻ từ, đọc trôi chảy (WCPM), hiểu; Voice UI, thước dòng, tùy biến dễ đọc, đồng bộ Google Drive." />
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF3D6" />
+  <link rel="icon" href="data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'>
+    <rect width='128' height='128' fill='%23FFF3D6'/>
+    <text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-family='sans-serif' fill='%23111'>Đ</text>
+  </svg>">
+
+  <style>
+    :root{
+      /* Chủ đề Calm mặc định */
+      --bg: #FFF3D6;        /* nền vàng nhạt, giảm chói */
+      --panel: #FFF8E6;     /* panel ấm */
+      --text: #111111;
+      --muted: #555;
+      --primary: #2E7D32;   /* đúng/tiếp tục */
+      --danger: #C62828;    /* sai/dừng */
+      --hint: #FFB300;      /* gợi ý/hướng dẫn */
+      --tts: #6A1B9A;       /* TTS */
+      --record: #1565C0;    /* ghi âm */
+      --border: #E2C995;
+      --card: #FFFDF6;
+      --accent: #4ECDC4;
+
+      /* Tham số dễ đọc (có thể chỉnh) */
+      --fs: 18px;          /* cỡ chữ cơ sở */
+      --lh: 1.75;          /* giãn dòng */
+      --ls: 0.02em;        /* giãn chữ */
+      --ruler-h: 2.4em;    /* chiều cao thước dòng */
+      --anim: 1;           /* 1: có chuyển động nhẹ; 0: tắt chuyển động */
+
+      --font-body: "Lexend", "OpenDyslexic", "Noto Sans", "Be Vietnam Pro", system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
+
+      --radius: 16px;
+      --shadow: 0 8px 30px rgba(0,0,0,0.10);
+      --shadow-soft: 0 6px 18px rgba(0,0,0,0.08);
+      --focus: 3px solid #4ECDC4;
+    }
+
+    /* Theme Vivid */
+    body.theme-vivid {
+      --bg: #FFF1CC;
+      --panel: #FFF6DE;
+      --accent: #FF7F50; /* coral */
+      --primary: #2B7A0B;
+      --tts: #6F2DBD;
+      --record: #0077B6;
+    }
+    /* Theme High Contrast */
+    body.theme-contrast {
+      --bg: #FFFFFF;
+      --panel: #FFFFFF;
+      --text: #000000;
+      --muted: #111;
+      --border: #111;
+      --card: #FFFFFF;
+      --accent: #000;
+    }
+
+    html, body {
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #FFF8E6, transparent),
+        radial-gradient(800px 500px at 100% 0%, #FFF9EB, transparent),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: var(--fs);
+      line-height: var(--lh);
+      letter-spacing: var(--ls);
+      margin: 0; padding: 0;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      transition: background-color calc(var(--anim)*180ms) ease, color calc(var(--anim)*180ms) ease;
+    }
+
+    .app { max-width: 980px; margin: 0 auto; padding: 12px 12px 90px; }
+
+    header.appbar {
+      position: sticky; top: env(safe-area-inset-top, 0);
+      background: rgba(255, 243, 214, 0.8); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 12px; z-index: 50; border-bottom: 1px solid var(--border);
+      border-radius: 0 0 18px 18px;
+    }
+    .title { font-weight: 900; font-size: 22px; letter-spacing: 0.01em; display:flex; align-items:center; gap:8px;}
+    .subtitle { color: var(--muted); font-size: 12px; }
+
+    .toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .badge { background: #fff; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+
+    button {
+      font: inherit; border: none; border-radius: 14px; padding: 12px 16px;
+      background: linear-gradient(180deg, #ffffff, #fff8ec);
+      box-shadow: var(--shadow-soft); cursor: pointer; transition: transform calc(var(--anim)*60ms) ease, box-shadow calc(var(--anim)*120ms) ease;
+    }
+    @media (pointer:fine){
+      button:hover { transform: translateY(-1px) scale(1.01); box-shadow: var(--shadow); }
+    }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: var(--focus); outline-offset: 2px; }
+    button.primary { background: linear-gradient(180deg, var(--primary), #1e5c23); color: #fff; }
+    button.danger { background: linear-gradient(180deg, var(--danger), #8e1d1d); color: #fff; }
+    button.hint { background: linear-gradient(180deg, var(--hint), #d99700); color: #111; }
+    button.ghost { background: transparent; box-shadow: none; border: 1px solid var(--border); }
+    button.tts { background: linear-gradient(180deg, var(--tts), #4a116d); color: #fff; }
+    button.record { background: linear-gradient(180deg, var(--record), #0f4c90); color: #fff; }
+    button.tog { background: #fff; border: 1px solid var(--border); }
+
+    .home-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; margin: 12px 0 0; }
+    @media (max-width:680px){ .home-grid{ grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
+      transition: transform calc(var(--anim)*100ms) ease, box-shadow calc(var(--anim)*160ms) ease;
+    }
+    @media (pointer:fine){
+      .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    }
+    .card h3 { margin: 0 0 8px 0; font-size: 18px; display:flex; align-items:center; gap:8px;}
+    .note { font-size: 13px; color: var(--muted); }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .section {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; margin: 12px 0; box-shadow: var(--shadow-soft);
+    }
+
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .spacer { flex: 1; }
+    .muted { color: var(--muted); }
+
+    .chip {
+      background: #fff; border: 1px dashed #e0c78f; padding: 10px 12px; border-radius: 12px; min-width: 40px; text-align: center; font-weight: 700; box-shadow: var(--shadow-soft); user-select: none;
+    }
+
+    .dropzone {
+      display: flex; gap: 8px; flex-wrap: wrap; padding: 10px; min-height: 52px; background: var(--card); border-radius: 12px; border: 2px dashed #e9d9b5;
+    }
+
+    .big-text { font-size: clamp(22px, 5vw, 36px); line-height: 1.7; }
+
+    .token { display:inline-block; padding:2px 4px; border-radius: 6px; margin: 1px 1px; transition: background-color calc(var(--anim)*120ms) ease, transform calc(var(--anim)*80ms) ease; }
+    .token:focus-visible { outline: var(--focus); }
+
+    /* Màu theo thanh điệu (nhất quán) */
+    .tone-ngang { background: #E1F5FE; }
+    .tone-sắc  { background: #FCE4EC; }
+    .tone-huyền{ background: #E8F5E9; }
+    .tone-hỏi  { background: #FFF8E1; }
+    .tone-ngã  { background: #EDE7F6; }
+    .tone-nặng { background: #F3E5F5; }
+
+    .inline-buttons { display:flex; gap:8px; flex-wrap: wrap; margin-top:8px; }
+
+    .stat { background:#fff; border-radius:10px; padding:8px 10px; border:1px solid var(--border); display:inline-flex; align-items:center; gap:8px; margin:4px 8px 4px 0; }
+
+    .grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+    @media (max-width: 720px){ .grid-2{ grid-template-columns: 1fr; } }
+
+    .question { background:#fff; border:1px solid var(--border); padding:10px; border-radius:10px; margin:8px 0; }
+
+    canvas { max-width: 100%; background:#fff; border:1px solid var(--border); border-radius: 10px; }
+
+    .footerbar {
+      position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,243,214,0.85); border-top:1px solid var(--border);
+      display:flex; gap:10px; justify-content:center; padding:10px; backdrop-filter: blur(6px);
+    }
+
+    .help { font-size: 13px; color: var(--muted); background:#fff; padding:10px; border:1px solid var(--border); border-radius:10px; }
+
+    .modal { position: fixed; inset: 0; display:none; place-items:center; background: rgba(0,0,0,0.25); padding: 10px; z-index: 1000; }
+    .modal.active{ display:grid; }
+    .modal > .dialog { max-width: 560px; width: 100%; background: var(--panel); border:1px solid var(--border); border-radius:18px; padding:16px; box-shadow: var(--shadow); }
+
+    input[type="text"], input[type="number"], input[type="url"], select, input[type="range"] {
+      font: inherit; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#fff; width:100%;
+    }
+    label { font-size: 13px; color: var(--muted); display:block; margin: 8px 0 4px; }
+
+    .level-pill { background:#fff; border:1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
+    .stars { font-size: 18px; }
+
+    /* Child mode: đơn giản hóa giao diện, ẩn thanh footer */
+    body.child .footerbar { display: none; }
+    body.child .toolbar .setup-only { display: none !important; }
+
+    /* Hộp khóa chế độ tự học */
+    .lockbar {
+      position: fixed; right: 10px; bottom: 80px; z-index: 999;
+      display: inline-flex; align-items:center; gap: 8px;
+      background:#fff; border:1px solid var(--border); padding:10px 12px; border-radius: 999px; box-shadow: var(--shadow-soft);
+    }
+
+    /* Thanh tốc độ TTS */
+    .slider {
+      display:flex; align-items:center; gap:8px; padding:6px 10px; background:#fff; border:1px solid var(--border); border-radius: 999px;
+    }
+    .slider input[type="range"]{ width: 160px; }
+
+    /* Đế điều khiển nổi (Quick Dock) */
+    .dock {
+      position: fixed; right: 10px; bottom: 10px; z-index: 1200;
+      display: grid; gap: 8px; grid-auto-flow: row;
+    }
+    .dock button {
+      padding: 10px 12px; min-width: 46px;
+      background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-soft);
+    }
+
+    /* Thước dòng trong đoạn đọc */
+    #passageView { position: relative; }
+    .ruler {
+      position: absolute; left: -6px; right: -6px; height: var(--ruler-h);
+      background: rgba(255, 215, 64, 0.28);
+      border: 2px solid #F5C542; border-radius: 10px;
+      display: none; pointer-events: none;
+      transition: transform calc(var(--anim)*120ms) ease;
+    }
+
+    /* Confetti nhẹ khi thưởng sao */
+    .confetti {
+      position: fixed; z-index: 2000; pointer-events: none; font-size: 18px;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Giảm chuyển động */
+    body.no-motion * {
+      transition: none !important;
+      animation: none !important;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <div>
+      <div class="title">Đọc Dễ <span class="stars" id="starCount">⭐ 0</span></div>
+      <div class="subtitle">Âm vị • Thẻ từ • Đọc trôi chảy • Dashboard</div>
+    </div>
+    <div class="toolbar">
+      <span id="learnerBadge" class="badge">Chưa thiết lập</span>
+      <button class="tog" id="btnChild" data-voice="Bật hoặc tắt chế độ tự học">🚸 Tự học: Tắt</button>
+      <button class="tog" id="btnVoice" data-voice="Bật hoặc tắt giọng nói trợ giúp">🔊 Giọng nói: Bật</button>
+      <button class="ghost setup-only" id="btnSettings" data-voice="Cài đặt">Cài đặt</button>
+      <button class="ghost" id="btnHelp" data-voice="Hướng dẫn">Hướng dẫn</button>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen active">
+    <div class="home-grid">
+      <div class="card">
+        <h3>🎯 Luyện âm vị</h3>
+        <div class="note">Kéo‑thả âm/tiếng, thanh điệu, cặp tối thiểu.</div>
+        <div class="inline-buttons" style="margin-top:10px;">
+          <button class="primary" onclick="App.nav('pa')" data-voice="Luyện âm vị. Bắt đầu">Bắt đầu</button>
+          <button class="tts" onclick="App.speak('Luyện âm vị')" data-voice="Nghe hướng dẫn Luyện âm vị">🔊 Nghe</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🃏 Thẻ từ</h3>
+        <div class="note">Nhận diện từ theo lặp lại giãn cách.</div>
+        <div class="inline-buttons" style="margin-top:10px;">
+          <button class="primary" onclick="App.nav('cards')" data-voice="Thẻ từ. Ôn tập">Ôn tập</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📖 Đọc đoạn</h3>
+        <div class="note">Đo WCPM, % đúng, hiểu nội dung; ghi âm – nghe lại.</div>
+        <div class="inline-buttons" style="margin-top:10px;">
+          <button class="primary" onclick="App.nav('reading')" data-voice="Đọc đoạn. Luyện đọc">Luyện đọc</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📊 Dashboard</h3>
+        <div class="note">Biểu đồ tiến bộ, lỗi theo loại, xuất CSV, đồng bộ.</div>
+        <div class="inline-buttons" style="margin-top:10px;">
+          <button class="primary" onclick="App.nav('dashboard')" data-voice="Mở bảng điều khiển">Mở Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <div class="level-pill">Gợi ý cấp độ đọc tiếp theo: <b id="nextLevelHint">—</b></div>
+        <div class="spacer"></div>
+        <button onclick="App.nav('export')" data-voice="Xuất dữ liệu">Xuất dữ liệu</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PA -->
+  <section id="screen-pa" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Âm vị học</span>
+    </div>
+    <div class="section" id="pa-container"></div>
+    <div class="help">Mẹo: Nhấn “🔊” để nghe mẫu; kéo‑thả “hạt âm/tiếng” để ráp từ; hoặc chọn thanh điệu/cặp tối thiểu theo yêu cầu.</div>
+  </section>
+
+  <!-- Cards -->
+  <section id="screen-cards" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Thẻ từ</span>
+    </div>
+    <div class="section" id="cards-container"></div>
+    <div class="help">Đánh giá “Dễ/Vừa/Khó” để ứng dụng tự động hẹn ngày ôn.</div>
+  </section>
+
+  <!-- Reading -->
+  <section id="screen-reading" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Đọc đoạn</span>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <label for="selLevel" style="margin:0;">Cấp độ:</label>
+        <select id="selLevel" onchange="App.reading.chooseLevel(this.value)" aria-label="Chọn cấp độ"></select>
+        <div class="spacer"></div>
+        <div class="slider" data-voice="Điều chỉnh tốc độ giọng đọc">
+          <span>🔊 Tốc độ</span>
+          <input id="rateSlider" type="range" min="0.6" max="1.4" step="0.05" value="0.9"
+                 oninput="App.updateRateFromSlider(this.value)" onfocus="VoiceUI.speak('Thanh tốc độ giọng đọc')" />
+          <span id="rateVal">0.90x</span>
+        </div>
+        <button class="ghost" onclick="App.reading.toggleFocus()" id="btnFocus" data-voice="Bật tắt chế độ một dòng">Chế độ 1 dòng: Tắt</button>
+        <button class="ghost" onclick="App.reading.toggleRuler()" id="btnRuler" data-voice="Bật tắt thước dòng">Thước dòng: Tắt</button>
+        <button class="ghost" onclick="App.reading.moveRuler(-1)" id="btnRulerUp" data-voice="Di chuyển thước dòng lên">▲</button>
+        <button class="ghost" onclick="App.reading.moveRuler(1)" id="btnRulerDown" data-voice="Di chuyển thước dòng xuống">▼</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div id="passageView" class="big-text"></div>
+      <div class="inline-buttons">
+        <button class="hint" onclick="App.reading.markMode('error')" id="btnErr" data-voice="Chế độ đánh dấu lỗi">Đánh dấu lỗi</button>
+        <button class="ghost" onclick="App.reading.markMode('normal')" id="btnNorm" data-voice="Chế độ bình thường">Chế độ bình thường</button>
+      </div>
+      <div class="help">Chạm vào từ để đánh dấu lỗi; chạm lại để bỏ. Nhấn giữ nút để nghe tên chức năng. Chạm vùng trống trong đoạn để đặt thước dòng.</div>
+    </div>
+
+    <div id="compSection" class="section" style="display:none;">
+      <h3>Câu hỏi hiểu nội dung</h3>
+      <div id="questions"></div>
+      <div class="row" style="margin-top:8px;">
+        <div class="spacer"></div>
+        <button class="primary" onclick="App.reading.finishComp()" data-voice="Hoàn tất câu hỏi">Hoàn tất</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="screen-dashboard" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Dashboard</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="section">
+        <h3>WCPM theo thời gian</h3>
+        <canvas id="chartWCPM" width="600" height="260"></canvas>
+      </div>
+      <div class="section">
+        <h3>% chính xác theo thời gian</h3>
+        <canvas id="chartACC" width="600" height="260"></canvas>
+      </div>
+      <div class="section">
+        <h3>Tổng lỗi theo loại</h3>
+        <canvas id="chartERR" width="600" height="260"></canvas>
+      </div>
+      <div class="section">
+        <h3>Thời lượng luyện tập</h3>
+        <canvas id="chartDUR" width="600" height="260"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <button onclick="App.exportCSV()" data-voice="Tải tệp CSV">Tải CSV</button>
+        <button class="ghost" onclick="App.copyCSV()" data-voice="Sao chép CSV">Sao chép CSV</button>
+        <div class="spacer"></div>
+        <button class="danger" onclick="App.resetConfirm()" data-voice="Xóa dữ liệu trên thiết bị này">Xóa dữ liệu (thiết bị này)</button>
+      </div>
+      <div class="help">CSV mở bằng Excel/Google Sheets. Dữ liệu chỉ lưu trên thiết bị này trừ khi bạn bật Đồng bộ.</div>
+    </div>
+
+    <div class="section">
+      <h3>Đồng bộ Google Drive</h3>
+      <div class="row">
+        <div class="spacer"></div>
+        <span class="badge" id="syncStatus">Trạng thái: chưa cấu hình</span>
+      </div>
+      <div class="inline-buttons" style="margin-top:10px;">
+        <button onclick="Sync.flush()" data-voice="Đồng bộ dữ liệu ngay">Đồng bộ ngay</button>
+        <button class="ghost" onclick="App.testSync()" data-voice="Kiểm tra kết nối đồng bộ">Kiểm tra kết nối</button>
+        <button class="ghost" onclick="App.showSyncHelp()" data-voice="Hướng dẫn thiết lập đồng bộ">Hướng dẫn thiết lập</button>
+      </div>
+      <div class="help">Ứng dụng gửi log đọc (WCPM, % đúng, lỗi, hiểu) tới Apps Script, rồi lưu vào Google Drive của bạn.</div>
+    </div>
+  </section>
+
+  <!-- Export -->
+  <section id="screen-export" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Xuất dữ liệu</span>
+    </div>
+    <div class="section">
+      <div class="row">
+        <button onclick="App.exportCSV()" data-voice="Tải tệp CSV">Tải CSV</button>
+        <button class="ghost" onclick="App.copyCSV()" data-voice="Sao chép CSV">Sao chép CSV</button>
+      </div>
+      <div class="help">Dán vào Google Sheets để theo dõi dài hạn.</div>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section id="screen-settings" class="screen">
+    <div class="row">
+      <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
+      <div class="spacer"></div>
+      <span class="badge">Cài đặt</span>
+    </div>
+
+    <div class="section">
+      <div class="grid-2">
+        <div>
+          <label>Mã học viên (không dùng tên thật)</label>
+          <input type="text" id="inpId" placeholder="VD: HS001" />
+        </div>
+        <div>
+          <label>Tuổi</label>
+          <input type="number" id="inpAge" min="5" max="15" />
+        </div>
+        <div>
+          <label>Khối/lớp</label>
+          <input type="text" id="inpGrade" placeholder="VD: Lớp 2" />
+        </div>
+        <div>
+          <label>Phông chữ</label>
+          <select id="selFont">
+            <option>Lexend</option>
+            <option>OpenDyslexic</option>
+            <option selected>System Sans</option>
+          </select>
+        </div>
+        <div>
+          <label>Tốc độ TTS (0.6–1.4)</label>
+          <input type="number" id="inpRate" value="0.9" step="0.05" min="0.6" max="1.4" />
+        </div>
+        <div>
+          <label>Cấp độ đọc ban đầu</label>
+          <select id="selStartLevel"></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="primary" onclick="App.saveSettings()" data-voice="Lưu cài đặt">Lưu</button>
+      </div>
+      <div class="help">“System Sans” tương thích mọi máy. Nếu máy có Lexend/OpenDyslexic, ứng dụng sẽ ưu tiên dùng.</div>
+    </div>
+
+    <div class="section">
+      <h3>Giao diện dễ đọc</h3>
+      <div class="grid-2">
+        <div>
+          <label>Cỡ chữ (px)</label>
+          <input type="range" id="rngFS" min="16" max="28" step="1" />
+        </div>
+        <div>
+          <label>Giãn dòng</label>
+          <input type="range" id="rngLH" min="1.4" max="2.2" step="0.05" />
+        </div>
+        <div>
+          <label>Giãn chữ</label>
+          <input type="range" id="rngLS" min="0" max="0.08" step="0.005" />
+        </div>
+        <div>
+          <label>Chiều cao thước dòng</label>
+          <input type="range" id="rngRuler" min="1.6" max="3.2" step="0.1" />
+        </div>
+        <div>
+          <label>Chủ đề</label>
+          <select id="selTheme">
+            <option value="calm">Calm (dịu mắt)</option>
+            <option value="vivid">Vivid (sinh động)</option>
+            <option value="contrast">Tương phản cao</option>
+          </select>
+        </div>
+        <div>
+          <label>Chuyển động</label>
+          <select id="selMotion">
+            <option value="on">Nhẹ (khuyến nghị)</option>
+            <option value="off">Tắt chuyển động</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="ghost" onclick="App.ui.reset()" data-voice="Khôi phục mặc định">Khôi phục mặc định</button>
+      </div>
+      <div class="help">Tăng cỡ chữ, giãn dòng/chữ giúp giảm tải nhận thức. Tương phản cao phù hợp môi trường chói sáng.</div>
+    </div>
+
+    <div class="section">
+      <h3>Đồng bộ Google Drive</h3>
+      <div class="grid-2">
+        <div>
+          <label>Đồng bộ (Apps Script URL)</label>
+          <input type="url" id="inpSyncUrl" placeholder="https://script.google.com/macros/s/XXX/exec" />
+        </div>
+        <div>
+          <label>Mật mã bí mật (SECRET)</label>
+          <input type="text" id="inpSyncSecret" placeholder="docde-secret-2025" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="App.saveSync()" data-voice="Lưu cài đặt đồng bộ">Lưu đồng bộ</button>
+        <button class="ghost" onclick="App.testSync()" data-voice="Kiểm tra kết nối đồng bộ">Kiểm tra kết nối</button>
+      </div>
+      <div class="help">Sao chép URL Web App từ Google Apps Script (Execute as: Me, Access: Anyone). SECRET phải trùng trong Script.</div>
+    </div>
+  </section>
+
+  <!-- Help -->
+  <div id="modalHelp" class="modal">
+    <div class="dialog">
+      <h3>Hướng dẫn nhanh</h3>
+      <ul>
+        <li>Âm vị: 5–7 phút, 6–8 mục tiêu theo lỗi hay gặp.</li>
+        <li>Thẻ từ: 5 phút, 10–15 thẻ (Dễ/Vừa/Khó).</li>
+        <li>Đọc đoạn: 3 lần/đoạn, đo WCPM & % đúng; làm 2–3 câu hỏi hiểu.</li>
+        <li>Thước dòng: Bật trong Đọc đoạn. Dùng ▲/▼ để di chuyển.</li>
+        <li>Giọng nói trợ giúp: Nhấn giữ 0.4 giây lên nút để nghe tên trước khi bấm.</li>
+      </ul>
+      <div class="row">
+        <div class="spacer"></div>
+        <button onclick="document.getElementById('modalHelp').classList.remove('active')" data-voice="Đóng hướng dẫn">Đã hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding -->
+  <div id="modalOnboard" class="modal">
+    <div class="dialog">
+      <h3>Thiết lập nhanh</h3>
+      <div class="grid-2">
+        <div>
+          <label>Mã học viên</label>
+          <input type="text" id="obId" placeholder="VD: HS001"/>
+        </div>
+        <div>
+          <label>Tuổi</label>
+          <input type="number" id="obAge" min="5" max="15"/>
+        </div>
+        <div>
+          <label>Khối/lớp</label>
+          <input type="text" id="obGrade" placeholder="VD: Lớp 2"/>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button class="primary" onclick="App.finishOnboard()" data-voice="Bắt đầu sử dụng">Bắt đầu</button>
+      </div>
+      <div class="help">Dữ liệu ẩn danh, chỉ lưu cục bộ nếu bạn chưa bật Đồng bộ.</div>
+    </div>
+  </div>
+
+  <!-- Chọn loại lỗi -->
+  <div id="errorMenu" class="modal" style="background: transparent;">
+    <div class="dialog" style="max-width:380px;">
+      <h3>Chọn loại lỗi</h3>
+      <div class="row" style="flex-wrap: wrap;">
+        <button onclick="App.reading.setErrType('tone')" data-voice="Sai thanh điệu">Sai thanh điệu</button>
+        <button onclick="App.reading.setErrType('sx')" data-voice="Nhầm s và x">Nhầm s x</button>
+        <button onclick="App.reading.setErrType('chtr')" data-voice="Nhầm ch và tr">Nhầm ch tr</button>
+        <button onclick="App.reading.setErrType('omission')" data-voice="Bỏ âm hoặc bỏ từ">Bỏ âm</button>
+        <button onclick="App.reading.setErrType('insertion')" data-voice="Thêm âm hoặc thêm từ">Thêm âm</button>
+        <button onclick="App.reading.setErrType('other')" data-voice="Lỗi khác">Khác</button>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="spacer"></div>
+        <button class="ghost" onclick="document.getElementById('errorMenu').classList.remove('active')" data-voice="Đóng bảng chọn lỗi">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Khoá/thoát Child Mode -->
+  <div class="lockbar" id="lockbar" style="display:none;">
+    <span>🚸 Tự học đang bật</span>
+    <button class="ghost" id="btnUnlock" data-voice="Giữ ba giây để thoát tự học">Giữ 3s để thoát</button>
+  </div>
+
+</div>
+
+<!-- Quick Dock nổi -->
+<div class="dock" id="dock">
+  <button id="btnAPlus" data-voice="Tăng cỡ chữ">A+</button>
+  <button id="btnAMinus" data-voice="Giảm cỡ chữ">A−</button>
+  <button id="btnTheme" data-voice="Đổi chủ đề">🎨</button>
+  <button id="btnContrast" data-voice="Bật tắt tương phản cao">HC</button>
+  <button id="btnMotion" data-voice="Bật tắt chuyển động">⏯</button>
+</div>
+
+<div class="footerbar">
+  <button onclick="App.nav('home')" data-voice="Trang chính">Trang chính</button>
+  <button onclick="App.nav('pa')" data-voice="Âm vị">Âm vị</button>
+  <button onclick="App.nav('cards')" data-voice="Thẻ từ">Thẻ từ</button>
+  <button onclick="App.nav('reading')" data-voice="Đọc đoạn">Đọc đoạn</button>
+  <button onclick="App.nav('dashboard')" data-voice="Bảng điều khiển">Dashboard</button>
+</div>
+
+<script>
+/* ===========================
+   DỮ LIỆU MẪU (có thể chỉnh sửa)
+   =========================== */
+const CARDS = [
+  { id:"w_0001", text:"bé", tags:["basic"] },
+  { id:"w_0002", text:"mẹ", tags:["basic"] },
+  { id:"w_0003", text:"cá", tags:["basic","tone"] },
+  { id:"w_0004", text:"cháo", tags:["chtr","tone"] },
+  { id:"w_0005", text:"xanh", tags:["sx"] },
+  { id:"w_0006", text:"sách", tags:["sx","tone"] },
+  { id:"w_0007", text:"tranh", tags:["chtr"] },
+  { id:"w_0008", text:"nhà", tags:["basic"] },
+  { id:"w_0009", text:"chó", tags:["chtr","tone"] },
+  { id:"w_0010", text:"ráo", tags:["tone"] }
+];
+
+const PA_ITEMS = [
+  { type:"segment", target:"tranh", parts:["tr","anh"], speak:"tranh", tags:["chtr"] },
+  { type:"segment", target:"sách", parts:["s","ách"], speak:"sách", tags:["sx","tone"] },
+  { type:"segment", target:"cháo", parts:["ch","áo"], speak:"cháo", tags:["chtr","tone"] },
+  { type:"segment", target:"xanh", parts:["x","anh"], speak:"xanh", tags:["sx"] },
+  { type:"tone", base:"ma", options:["ma","má","mà","mả","mã","mạ"], correct:"má", tags:["tone"] },
+  { type:"tone", base:"ba", options:["ba","bá","bà","bả","bã","bạ"], correct:"bà", tags:["tone"] },
+  { type:"pair", pair:["sông","xông"], correctIndex:0, focus:"sx" },
+  { type:"pair", pair:["chanh","tranh"], correctIndex:1, focus:"chtr" }
+];
+
+const PASSAGES = [
+  { id:"p_001", level:1, text:"Bé ăn cá. Mẹ mua rau. Chó chạy nhanh.",
+    questions:[
+      { q:"Ai ăn cá?", choices:["Bé","Mẹ","Chó"], ans:0, type:"literal" },
+      { q:"Ai chạy nhanh?", choices:["Cá","Chó","Mẹ"], ans:1, type:"literal" }
+    ]},
+  { id:"p_002", level:2, text:"Buổi sáng, Lan tưới cây trước sân. Cây nhỏ có lá xanh. Mẹ bảo Lan tưới nhẹ để đất không trôi.",
+    questions:[
+      { q:"Lan làm gì buổi sáng?", choices:["Tưới cây","Quét nhà","Cho mèo ăn"], ans:0, type:"literal" },
+      { q:"Vì sao tưới nhẹ?", choices:["Để đất không trôi","Vì trời mưa","Vì cây lớn"], ans:0, type:"inferential" }
+    ]},
+  { id:"p_003", level:3, text:"Hôm nay lớp Lan trồng rau ở vườn trường. Mỗi bạn chăm một luống. Lan nhổ cỏ, bạn Nam tưới nước. Các em học cách đo khoảng cách để gieo hạt đều. Cuối buổi, thầy khen cả lớp làm tốt.",
+    questions:[
+      { q:"Bạn Nam làm gì?", choices:["Tưới nước","Nhổ cỏ","Gieo hạt"], ans:0, type:"literal" },
+      { q:"Vì sao phải đo khoảng cách?", choices:["Để gieo đều","Cho nhanh","Vì thầy bảo"], ans:0, type:"inferential" }
+    ]}
+];
+
+/* ===========================
+   LƯU TRỮ & TRẠNG THÁI
+   =========================== */
+const Store = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch{ return d; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+};
+const now = () => Date.now();
+
+const AppState = {
+  learner: Store.get('learner', { id:"", age:null, grade:"", level:1, ttsRate:0.9, font:"System Sans" }),
+  logs: Store.get('logs', []),
+  cardDeck: Store.get('cards', null),
+  childMode: Store.get('childMode', false),
+  stars: Store.get('stars', 0),
+  srInit(){
+    if (!this.cardDeck){
+      this.cardDeck = {};
+      for (const c of CARDS) {
+        this.cardDeck[c.id] = { id:c.id, easiness:2.5, interval:0, due: now() };
+      }
+      Store.set('cards', this.cardDeck);
+    }
+  }
+};
+
+/* ===========================
+   TTS (đặt trước VoiceUI)
+   =========================== */
+const TTS = {
+  supported: 'speechSynthesis' in window,
+  speak(text, rate=0.9){
+    if (!this.supported) { return; }
+    const ut = new SpeechSynthesisUtterance(text);
+    ut.lang = 'vi-VN';
+    ut.rate = rate;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(ut);
+  }
+};
+
+/* ===========================
+   VOICE UI (đọc tên nút, hướng dẫn)
+   =========================== */
+const VoiceUI = {
+  enabled: JSON.parse(localStorage.getItem('voice_enabled') || 'true'),
+  cooldownUntil: 0,
+  rate(){ return (AppState?.learner?.ttsRate) || 0.9; },
+  speak(msg){ if (!this.enabled) return; TTS.speak(msg, this.rate()); },
+  say(msg, cd=700){ const t=Date.now(); if (t<this.cooldownUntil) return; this.cooldownUntil=t+cd; this.speak(msg); },
+  toggle(on){ this.enabled = (on ?? !this.enabled); localStorage.setItem('voice_enabled', JSON.stringify(this.enabled)); return this.enabled; },
+  attachButtonVoice(el){
+    if (!el) return;
+    const label = el.getAttribute('data-voice') || el.innerText?.trim() || 'nút';
+    let timer;
+    const readLabel = ()=> VoiceUI.speak(label);
+    el.addEventListener('pointerdown', ()=> { timer = setTimeout(readLabel, 400); });
+    el.addEventListener('pointerup', ()=> { clearTimeout(timer); });
+    el.addEventListener('pointerleave', ()=> { clearTimeout(timer); });
+    el.addEventListener('focus', ()=> { if (VoiceUI.enabled) setTimeout(readLabel, 80); });
+  },
+  attachAll(){
+    document.querySelectorAll('button, [role="button"]').forEach(btn => VoiceUI.attachButtonVoice(btn));
+    const rateSlider = document.getElementById('rateSlider');
+    if (rateSlider && !rateSlider._voiceBound){
+      rateSlider.addEventListener('focus', ()=> VoiceUI.speak('Thanh tốc độ giọng đọc'));
+      rateSlider._voiceBound = true;
+    }
+  }
+};
+function speakFeedback(msg){ VoiceUI.say(msg); }
+
+/* ===========================
+   GHI ÂM & COACH
+   =========================== */
+const Recorder = {
+  stream: null, rec: null, chunks: [], recording:false, lastBlob: null,
+  async toggle(seconds=60){
+    if (this.recording) { this.stop(); return; }
+    if (!navigator.mediaDevices?.getUserMedia) { alert('Thiết bị không hỗ trợ ghi âm'); return; }
+    this.stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    this.rec = new MediaRecorder(this.stream);
+    this.chunks = [];
+    this.rec.ondataavailable = (e)=> this.chunks.push(e.data);
+    this.rec.onstop = ()=>{
+      this.lastBlob = new Blob(this.chunks, { type: 'audio/webm' });
+      this.stream.getTracks().forEach(t=>t.stop());
+      this.recording=false;
+      speakFeedback('Đã dừng ghi. Nhấn để nghe lại.');
+    };
+    this.rec.start(); this.recording = true;
+    setTimeout(()=>{ if(this.recording) this.stop(); }, seconds*1000);
+  },
+  stop(){ if(this.rec && this.recording){ this.rec.stop(); } },
+  async play(){
+    if (!this.lastBlob) { alert('Chưa có bản ghi'); return; }
+    const url = URL.createObjectURL(this.lastBlob); const a = new Audio(url); a.play();
+  }
+};
+
+const Coach = {
+  cooldown: 0,
+  say(msg){
+    const t = Date.now();
+    if (t < this.cooldown) return;
+    this.cooldown = t + 1200;
+    TTS.speak(msg, AppState.learner.ttsRate || 0.9);
+  }
+};
+
+/* ===========================
+   UI STATE (dễ đọc & chủ đề)
+   =========================== */
+const UIState = Store.get('ui', {
+  fs: 18, lh: 1.75, ls: 0.02, ruler: 2.4,
+  theme: 'calm', motion: true
+});
+const UI = {
+  apply(){
+    document.documentElement.style.setProperty('--fs', UIState.fs + 'px');
+    document.documentElement.style.setProperty('--lh', UIState.lh);
+    document.documentElement.style.setProperty('--ls', UIState.ls + 'em');
+    document.documentElement.style.setProperty('--ruler-h', UIState.ruler + 'em');
+    document.body.classList.toggle('theme-vivid', UIState.theme === 'vivid');
+    document.body.classList.toggle('theme-contrast', UIState.theme === 'contrast');
+    document.body.classList.toggle('no-motion', !UIState.motion);
+  },
+  setFS(delta){ UIState.fs = Math.max(16, Math.min(28, UIState.fs + delta)); this.save(); },
+  setTheme(next){
+    if (next) UIState.theme = next;
+    else {
+      UIState.theme = UIState.theme === 'calm' ? 'vivid' : (UIState.theme === 'vivid' ? 'contrast' : 'calm');
+    }
+    this.save();
+  },
+  toggleContrast(){ UIState.theme = (UIState.theme === 'contrast' ? 'calm' : 'contrast'); this.save(); },
+  toggleMotion(){ UIState.motion = !UIState.motion; this.save(); },
+  setFromControls(){
+    const g = (id)=> document.getElementById(id);
+    const fs = +g('rngFS').value; const lh = +g('rngLH').value; const ls = +g('rngLS').value; const ru = +g('rngRuler').value;
+    const theme = g('selTheme').value; const motion = g('selMotion').value === 'on';
+    UIState.fs = fs; UIState.lh = lh; UIState.ls = ls; UIState.ruler = ru; UIState.theme = theme; UIState.motion = motion;
+    this.save(false);
+  },
+  fillControls(){
+    const g = (id)=> document.getElementById(id);
+    if (g('rngFS')) g('rngFS').value = UIState.fs;
+    if (g('rngLH')) g('rngLH').value = UIState.lh;
+    if (g('rngLS')) g('rngLS').value = UIState.ls;
+    if (g('rngRuler')) g('rngRuler').value = UIState.ruler;
+    if (g('selTheme')) g('selTheme').value = UIState.theme;
+    if (g('selMotion')) g('selMotion').value = UIState.motion ? 'on' : 'off';
+  },
+  reset(){
+    UIState.fs=18; UIState.lh=1.75; UIState.ls=0.02; UIState.ruler=2.4; UIState.theme='calm'; UIState.motion=true;
+    this.save();
+    VoiceUI.say('Đã khôi phục giao diện mặc định');
+  },
+  save(speak=true){
+    Store.set('ui', UIState);
+    this.apply();
+    this.fillControls();
+    if (speak) VoiceUI.say('Đã áp dụng giao diện');
+  }
+};
+
+/* ===========================
+   TIỆN ÍCH
+   =========================== */
+const fmtTime = (ms) => {
+  const s = Math.floor(ms/1000);
+  const m = String(Math.floor(s/60)).padStart(2,'0');
+  const r = String(s%60).padStart(2,'0');
+  return m+':'+r;
+};
+const wordsOf = (text) => text.trim().split(/\s+/).filter(Boolean);
+const detectTone = (syll) => {
+  const map = {'á':'sắc','ấ':'sắc','ắ':'sắc','é':'sắc','ế':'sắc','í':'sắc','ó':'sắc','ố':'sắc','ớ':'sắc','ú':'sắc','ứ':'sắc','ý':'sắc',
+    'à':'huyền','ầ':'huyền','ằ':'huyền','è':'huyền','ề':'huyền','ì':'huyền','ò':'huyền','ồ':'huyền','ờ':'huyền','ù':'huyền','ừ':'huyền','ỳ':'huyền',
+    'ả':'hỏi','ẩ':'hỏi','ẳ':'hỏi','ẻ':'hỏi','ể':'hỏi','ỉ':'hỏi','ỏ':'hỏi','ổ':'hỏi','ở':'hỏi','ủ':'hỏi','ử':'hỏi','ỷ':'hỏi',
+    'ã':'ngã','ẫ':'ngã','ẵ':'ngã','ẽ':'ngã','ễ':'ngã','ĩ':'ngã','õ':'ngã','ỗ':'ngã','ỡ':'ngã','ũ':'ngã','ữ':'ngã','ỹ':'ngã',
+    'ạ':'nặng','ậ':'nặng','ặ':'nặng','ẹ':'nặng','ệ':'nặng','ị':'nặng','ọ':'nặng','ộ':'nặng','ợ':'nặng','ụ':'nặng','ự':'nặng','ỵ':'nặng' };
+  for (const ch of syll) { if (map[ch]) return map[ch]; }
+  return 'ngang';
+};
+const toneClass = (syll) => 'tone-' + detectTone(syll);
+
+function drawLineChart(canvas, xs, ys, color='#2E7D32', yLabel=''){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#ddd'; ctx.beginPath();
+  const pl=40, pr=10, pt=10, pb=30;
+  ctx.moveTo(pl, pt); ctx.lineTo(pl, H-pb); ctx.lineTo(W-pr, H-pb); ctx.stroke();
+  if (!ys.length) return;
+  const yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const y0 = (yMin===yMax) ? yMin-1 : yMin;
+  const y1 = (yMin===yMax) ? yMax+1 : yMax;
+  const xScale = (i) => pl + (i/(Math.max(1, ys.length-1))) * (W-pl-pr);
+  const yScale = (v) => H - pb - ((v - y0)/(y1 - y0)) * (H - pt - pb);
+  ctx.strokeStyle='#eee';
+  for (let i=0; i<=4; i++){ const ty = pt + i*(H-pt-pb)/4; ctx.beginPath(); ctx.moveTo(pl, ty); ctx.lineTo(W-pr, ty); ctx.stroke(); }
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+  ys.forEach((v,i)=>{ const x=xScale(i), y=yScale(v); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
+  ctx.fillStyle=color; ys.forEach((v,i)=>{ const x=xScale(i), y=yScale(v); ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle='#666'; ctx.font='12px system-ui'; ctx.fillText(yLabel, 6, 14);
+}
+
+function download(filename, text) {
+  const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+}
+
+function toCSV(rows){
+  if (!rows.length) return '';
+  const headers = Object.keys(rows[0]);
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [headers.join(',')];
+  for(const r of rows){ lines.push(headers.map(h=>esc(r[h])).join(',')); }
+  return lines.join('\n');
+}
+
+/* ===========================
+   ADAPTIVE ENGINE
+   =========================== */
+function adaptivePlan(logs, currentLevel=1){
+  const recent = logs.filter(x=>x.type==='reading').slice(-3);
+  if (!recent.length) return { nextLevel: currentLevel, scaffolds:['hint-on-demand'] };
+  const acc3 = recent.reduce((s,x)=> s + (x.accuracy||0), 0)/recent.length;
+  const wcpmTrend = recent[recent.length-1].wcpm - recent[0].wcpm;
+  let nextLevel = currentLevel; let scaffolds = ['hint-on-demand'];
+  if (acc3 >= 0.9 && wcpmTrend >= 10) nextLevel = currentLevel + 1;
+  else if (acc3 < 0.75) { nextLevel = Math.max(1, currentLevel - 1); scaffolds = ['tts-per-syllable','one-line-mode','pointer']; }
+  return { nextLevel, scaffolds, acc3, wcpmTrend };
+}
+
+/* ===========================
+   SPACED REPETITION (SM-2 giản lược)
+   =========================== */
+function srReview(card, quality, nowMs=now()){
+  let e = Math.max(1.3, (card.easiness ?? 2.5) + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  let i = quality < 3 ? 1 : (card.interval === 0 ? 1 : Math.round(card.interval * e));
+  return { ...card, easiness: +e.toFixed(2), interval: i, due: nowMs + i * 24*3600*1000 };
+}
+
+/* ===========================
+   ĐỒNG BỘ (Apps Script)
+   =========================== */
+const Sync = {
+  endpoint: Store.get('syncEndpoint', ''),
+  secret: Store.get('syncSecret', ''),
+  queue: Store.get('outbox', []),
+  lastStatus: Store.get('syncLastStatus', 'chưa cấu hình'),
+  setEndpoint(url){ this.endpoint = url.trim(); Store.set('syncEndpoint', this.endpoint); App.updateSyncStatus(); },
+  setSecret(s){ this.secret = s.trim(); Store.set('syncSecret', this.secret); },
+  enqueue(obj){
+    this.queue.push({ url:this.endpoint, payload: obj, secret: this.secret });
+    Store.set('outbox', this.queue);
+    this.flush();
+  },
+  async flush(){
+    App.updateSyncStatus();
+    if (!this.endpoint || !this.secret) { this.lastStatus = 'chưa cấu hình'; Store.set('syncLastStatus', this.lastStatus); App.updateSyncStatus(); return; }
+    if (!this.queue.length) { this.lastStatus = 'hàng đợi trống'; Store.set('syncLastStatus', this.lastStatus); App.updateSyncStatus(); return; }
+    const newQueue = [];
+    for (const item of this.queue){
+      try{
+        const res = await fetch(this.endpoint, {
+          method:'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ secret: this.secret, data: item.payload })
+        });
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        await res.json().catch(()=>({ok:true}));
+        this.lastStatus = 'đã gửi ' + (item.payload?.sessionId || '');
+      }catch(e){
+        newQueue.push(item);
+        this.lastStatus = 'lỗi, sẽ thử lại';
+      }
+    }
+    this.queue = newQueue;
+    Store.set('outbox', this.queue);
+    Store.set('syncLastStatus', this.lastStatus);
+    App.updateSyncStatus();
+  }
+};
+
+/* ===========================
+   ỨNG DỤNG
+   =========================== */
+const App = {
+  speak: (t)=> TTS.speak(t, AppState.learner.ttsRate || 0.9),
+  nav(screen){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById('screen-' + screen);
+    if (el) el.classList.add('active');
+
+    // Render theo màn
+    if (screen==='dashboard') App.dashboard.render();
+    if (screen==='pa') { App.pa.render(); if (AppState.childMode) Coach.say('Kéo các mảnh để ghép thành từ.'); }
+    if (screen==='cards') { App.cards.render(); if (AppState.childMode) Coach.say('Chạm nghe từ và chọn khó hay dễ.'); }
+    if (screen==='reading') { App.reading.init(); if (AppState.childMode) Coach.say('Nhấn bắt đầu rồi đọc to. Gặp từ khó thì chạm để đánh dấu.'); }
+    if (screen==='settings') { UI.fillControls(); }
+
+    // Hướng dẫn nói tự động
+    if (screen==='home') VoiceUI.speak('Trang chính. Chọn luyện âm vị, thẻ từ, đọc đoạn, hoặc bảng điều khiển.');
+    if (screen==='pa') VoiceUI.speak('Luyện âm vị. Kéo hoặc chạm để ghép âm. Nhấn giữ nút để nghe tên chức năng.');
+    if (screen==='cards') VoiceUI.speak('Thẻ từ. Chạm nghe từ, chọn dễ, vừa hoặc khó.');
+    if (screen==='reading') VoiceUI.speak('Đọc đoạn. Nhấn Bắt đầu để tính giờ. Có thanh trượt tốc độ giọng đọc và thước dòng.');
+    if (screen==='dashboard') VoiceUI.speak('Bảng điều khiển. Xem tiến bộ và đồng bộ dữ liệu.');
+    if (screen==='settings') VoiceUI.speak('Cài đặt. Điều chỉnh giao diện dễ đọc và đồng bộ.');
+    if (screen==='export') VoiceUI.speak('Xuất dữ liệu. Tải CSV hoặc sao chép.');
+
+    VoiceUI.attachAll();
+  },
+  toast(msg){ console.log('[Toast]', msg); },
+  init(){
+    // Áp dụng giao diện
+    UI.apply();
+
+    // Font
+    document.body.style.fontFamily = {
+      'Lexend': '"Lexend", var(--font-body)',
+      'OpenDyslexic': '"OpenDyslexic", var(--font-body)',
+      'System Sans': 'var(--font-body)'
+    }[AppState.learner.font || 'System Sans'];
+
+    // SR init
+    AppState.srInit();
+
+    // Buttons
+    const btnSettings = document.getElementById('btnSettings');
+    if (btnSettings) btnSettings.onclick = ()=> App.nav('settings');
+    const btnHelp = document.getElementById('btnHelp');
+    if (btnHelp) btnHelp.onclick = ()=>{
+      document.getElementById('modalHelp').classList.add('active');
+      VoiceUI.speak('Hướng dẫn. Nhấn giữ nút để nghe tên trước khi chọn.');
+    };
+
+    // Child mode toggle
+    const btnChild = document.getElementById('btnChild');
+    const lockbar = document.getElementById('lockbar');
+    const updateChildUI = ()=> {
+      if (!btnChild) return;
+      btnChild.textContent = AppState.childMode ? '🚸 Tự học: Bật' : '🚸 Tự học: Tắt';
+      document.body.classList.toggle('child', AppState.childMode);
+      if (lockbar) lockbar.style.display = AppState.childMode ? '' : 'none';
+    };
+    if (btnChild){
+      btnChild.onclick = ()=>{
+        AppState.childMode = !AppState.childMode;
+        Store.set('childMode', AppState.childMode);
+        updateChildUI();
+        if (AppState.childMode) Coach.say('Chế độ tự học đã bật. Con làm theo hướng dẫn nhé.');
+      };
+    }
+    updateChildUI();
+
+    // Unlock long press
+    const unlockBtn = document.getElementById('btnUnlock');
+    if (unlockBtn){
+      let pressTimer;
+      const resetTxt = ()=> unlockBtn.textContent = 'Giữ 3s để thoát';
+      unlockBtn.addEventListener('pointerdown', ()=>{
+        unlockBtn.textContent = 'Đang mở khóa...';
+        pressTimer = setTimeout(()=>{
+          AppState.childMode = false; Store.set('childMode', false);
+          updateChildUI(); resetTxt();
+          speakFeedback('Đã thoát chế độ tự học');
+        }, 3000);
+      });
+      unlockBtn.addEventListener('pointerup', ()=>{ clearTimeout(pressTimer); resetTxt(); });
+      unlockBtn.addEventListener('pointerleave', ()=>{ clearTimeout(pressTimer); resetTxt(); });
+    }
+
+    // Levels
+    const levels = Array.from(new Set(PASSAGES.map(p=>p.level))).sort((a,b)=>a-b);
+    const selLevel = document.getElementById('selLevel');
+    if (selLevel) selLevel.innerHTML = levels.map(l=> `<option value="${l}">Cấp ${l}</option>`).join('');
+    const selStartLevel = document.getElementById('selStartLevel');
+    if (selStartLevel) selStartLevel.innerHTML = selLevel ? selLevel.innerHTML : '';
+
+    // Settings fill
+    if (selLevel && AppState.learner.level) selLevel.value = AppState.learner.level;
+    if (selStartLevel && AppState.learner.level) selStartLevel.value = AppState.learner.level;
+    const f = (id)=> document.getElementById(id);
+    if (f('inpId')) f('inpId').value = AppState.learner.id || '';
+    if (f('inpAge')) f('inpAge').value = AppState.learner.age || '';
+    if (f('inpGrade')) f('inpGrade').value = AppState.learner.grade || '';
+    if (f('selFont')) f('selFont').value = AppState.learner.font || 'System Sans';
+    if (f('inpRate')) f('inpRate').value = AppState.learner.ttsRate || 0.9;
+    if (f('rateSlider')) f('rateSlider').value = AppState.learner.ttsRate || 0.9;
+    if (f('rateVal')) f('rateVal').textContent = (AppState.learner.ttsRate || 0.9).toFixed(2)+'x';
+
+    // UI controls fill
+    UI.fillControls();
+    const bind = (id, handler)=> { const el = document.getElementById(id); if (el) el.addEventListener('input', handler); };
+    bind('rngFS', ()=> UI.setFromControls());
+    bind('rngLH', ()=> UI.setFromControls());
+    bind('rngLS', ()=> UI.setFromControls());
+    bind('rngRuler', ()=> UI.setFromControls());
+    const sTheme = document.getElementById('selTheme'); if (sTheme) sTheme.addEventListener('change', ()=> UI.setFromControls());
+    const sMotion = document.getElementById('selMotion'); if (sMotion) sMotion.addEventListener('change', ()=> UI.setFromControls());
+
+    // Quick Dock
+    const d = (id)=> document.getElementById(id);
+    if (d('btnAPlus')) d('btnAPlus').onclick = ()=> { UI.setFS(+1); };
+    if (d('btnAMinus')) d('btnAMinus').onclick = ()=> { UI.setFS(-1); };
+    if (d('btnTheme')) d('btnTheme').onclick = ()=> { UI.setTheme(); };
+    if (d('btnContrast')) d('btnContrast').onclick = ()=> { UI.toggleContrast(); };
+    if (d('btnMotion')) d('btnMotion').onclick = ()=> { UI.toggleMotion(); };
+
+    // Voice toggle
+    const btnVoice = document.getElementById('btnVoice');
+    const updateVoiceBtn = ()=> { if (btnVoice) btnVoice.textContent = (VoiceUI.enabled ? '🔊 Giọng nói: Bật' : '🔇 Giọng nói: Tắt'); };
+    if (btnVoice){
+      btnVoice.onclick = ()=> { VoiceUI.toggle(); updateVoiceBtn(); VoiceUI.speak(VoiceUI.enabled ? 'Đã bật giọng nói trợ giúp' : 'Đã tắt giọng nói trợ giúp'); };
+      updateVoiceBtn();
+    }
+
+    // PWA SW
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+    // Online flush
+    window.addEventListener('online', ()=> Sync.flush());
+
+    // Initial sync status
+    App.updateSyncStatus();
+    Sync.flush();
+
+    // Gắn label giọng nói cho nút hiện có
+    VoiceUI.attachAll();
+
+    // Mở Home
+    App.nav('home');
+  },
+  updateLearnerBadge(){
+    const b = document.getElementById('learnerBadge'); const L = AppState.learner;
+    if (b) b.textContent = L.id ? `Mã: ${L.id}, Cấp: ${L.level || 1}` : 'Chưa thiết lập';
+  },
+  updateNextLevelHint(){
+    const plan = adaptivePlan(AppState.logs, AppState.learner.level || 1);
+    const el = document.getElementById('nextLevelHint');
+    if (el) el.textContent = `Cấp ${plan.nextLevel}`;
+  },
+  updateStars(){ const el = document.getElementById('starCount'); if (el){ el.textContent = `⭐ ${AppState.stars||0}`; Store.set('stars', AppState.stars||0); } },
+  addStar(n=1){ AppState.stars = (AppState.stars||0) + n; App.updateStars(); App.celebrate(); },
+
+  updateRateFromSlider(v){
+    const rate = +v;
+    AppState.learner.ttsRate = rate; Store.set('learner', AppState.learner);
+    const rv = document.getElementById('rateVal'); if (rv) rv.textContent = rate.toFixed(2)+'x';
+    VoiceUI.say(`Tốc độ ${rate.toFixed(2)} lần`, 600);
+  },
+
+  saveSettings(){
+    const g = (id)=> document.getElementById(id);
+    AppState.learner.id = g('inpId').value.trim();
+    AppState.learner.age = +g('inpAge').value || null;
+    AppState.learner.grade = g('inpGrade').value.trim();
+    AppState.learner.font = g('selFont').value;
+    AppState.learner.ttsRate = +g('inpRate').value || 0.9;
+    AppState.learner.level = +g('selStartLevel').value || 1;
+    Store.set('learner', AppState.learner);
+    App.init();
+    alert('Đã lưu cài đặt.');
+  },
+  finishOnboard(){
+    const id = document.getElementById('obId').value.trim();
+    const age = +document.getElementById('obAge').value || null;
+    const grade = document.getElementById('obGrade').value.trim();
+    if (!id) { alert('Hãy nhập Mã học viên.'); return; }
+    AppState.learner.id = id; AppState.learner.age = age; AppState.learner.grade = grade;
+    AppState.learner.level = AppState.learner.level || 1;
+    Store.set('learner', AppState.learner);
+    App.updateLearnerBadge();
+    document.getElementById('modalOnboard').classList.remove('active');
+    VoiceUI.speak('Đã thiết lập xong. Vào trang chính để bắt đầu.');
+  },
+
+  saveSync(){
+    const url = document.getElementById('inpSyncUrl').value.trim();
+    const secret = document.getElementById('inpSyncSecret').value.trim();
+    Sync.setEndpoint(url); Sync.setSecret(secret);
+    alert('Đã lưu cài đặt đồng bộ.');
+    App.updateSyncStatus();
+  },
+  async testSync(){
+    if (!Sync.endpoint || !Sync.secret) { alert('Chưa cấu hình URL/SECRET.'); return; }
+    try{
+      const res = await fetch(Sync.endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ secret: Sync.secret, ping:true }) });
+      const js = await res.json();
+      alert('Kết nối OK: ' + JSON.stringify(js));
+    }catch(e){ alert('Không kết nối được. Kiểm tra URL hoặc quyền Web App.'); }
+    App.updateSyncStatus();
+  },
+  showSyncHelp(){
+    alert('Đồng bộ cần Google Apps Script Web App (Execute as: Me, Access: Anyone). Dán URL vào phần Cài đặt > Đồng bộ.');
+  },
+  updateSyncStatus(){
+    const s = document.getElementById('syncStatus');
+    if (!s) return;
+    const q = Sync.queue?.length || 0;
+    const status = Sync.endpoint ? `Hàng đợi: ${q} • ${Sync.lastStatus || ''}` : 'chưa cấu hình';
+    s.textContent = 'Trạng thái: ' + status;
+  },
+
+  exportCSV(){
+    const rows = (AppState.logs||[]).map(x => ({
+      learner_id: AppState.learner.id || '',
+      date: new Date(x.ts).toISOString(),
+      session_id: x.sessionId || '',
+      type: x.type,
+      level: x.level || '',
+      passage_id: x.passageId || '',
+      duration_ms: x.durationMs || '',
+      total_words: x.totalWords || '',
+      correct_words: x.correctWords || '',
+      wcpm: x.wcpm || '',
+      accuracy: x.accuracy || '',
+      comp_correct: x.compCorrect ?? '',
+      comp_total: x.compTotal ?? '',
+      used_tts: x.usedTTS ?? '',
+      errors_tone: x.errorsByType?.tone ?? 0,
+      errors_sx: x.errorsByType?.sx ?? 0,
+      errors_chtr: x.errorsByType?.chtr ?? 0,
+      errors_omission: x.errorsByType?.omission ?? 0,
+      errors_insertion: x.errorsByType?.insertion ?? 0,
+      errors_other: x.errorsByType?.other ?? 0
+    }));
+    const csv = toCSV(rows);
+    download(`docde_${AppState.learner.id || 'anon'}.csv`, csv);
+  },
+  copyCSV(){
+    const rows = (AppState.logs||[]).map(x => ({
+      learner_id: AppState.learner.id || '',
+      date: new Date(x.ts).toISOString(),
+      session_id: x.sessionId || '',
+      type: x.type,
+      level: x.level || '',
+      passage_id: x.passageId || '',
+      duration_ms: x.durationMs || '',
+      total_words: x.totalWords || '',
+      correct_words: x.correctWords || '',
+      wcpm: x.wcpm || '',
+      accuracy: x.accuracy || '',
+      comp_correct: x.compCorrect ?? '',
+      comp_total: x.compTotal ?? '',
+      used_tts: x.usedTTS ?? '',
+      errors_tone: x.errorsByType?.tone ?? 0,
+      errors_sx: x.errorsByType?.sx ?? 0,
+      errors_chtr: x.errorsByType?.chtr ?? 0,
+      errors_omission: x.errorsByType?.omission ?? 0,
+      errors_insertion: x.errorsByType?.insertion ?? 0,
+      errors_other: x.errorsByType?.other ?? 0
+    }));
+    const csv = toCSV(rows);
+    navigator.clipboard?.writeText(csv).then(()=> alert('Đã sao chép CSV.')).catch(()=> alert('Không sao chép được. Hãy dùng nút Tải CSV.'));
+  },
+  resetConfirm(){
+    if (confirm('XÓA TOÀN BỘ DỮ LIỆU trên thiết bị này?')) {
+      localStorage.removeItem('logs'); AppState.logs = [];
+      alert('Đã xóa.'); App.dashboard.render();
+    }
+  },
+
+  /* ===== CELEBRATION ===== */
+  celebrate(){
+    const n = 14;
+    for (let i=0;i<n;i++){
+      const s = document.createElement('div');
+      s.className = 'confetti';
+      s.textContent = ['⭐','✨','🌟'][i%3];
+      s.style.left = Math.random()*100 + 'vw';
+      s.style.animationDuration = (1.8 + Math.random()*1.2) + 's';
+      document.body.appendChild(s);
+      setTimeout(()=> s.remove(), 3200);
+    }
+  },
+
+  /* ===== PA ===== */
+  pa: {
+    idx: 0,
+    render(){
+      const wrap = document.getElementById('pa-container');
+      wrap.innerHTML = '';
+      const item = PA_ITEMS[this.idx % PA_ITEMS.length];
+      if (!item) { wrap.textContent = 'Hết bài tập.'; return; }
+
+      if (item.type === 'segment'){
+        const box = document.createElement('div');
+        box.className = 'section';
+        box.innerHTML = `
+          <div class="row">
+            <div style="font-weight:700;">Ghép âm/tiếng thành từ</div>
+            <div class="spacer"></div>
+            <button class="tts" data-voice="Nghe mẫu" onclick="TTS.speak('${item.speak || item.target}', ${AppState.learner.ttsRate || 0.9})">🔊</button>
+          </div>
+          <div class="big-text" style="margin-top:8px;">
+            <span class="token ${toneClass(item.target)}">${item.target}</span>
+          </div>
+          <div style="margin:8px 0 4px;">Kéo các mảnh bên dưới vào khung theo thứ tự đúng:</div>
+          <div class="dropzone" id="dz"></div>
+          <div class="inline-buttons" id="parts"></div>
+          <div class="row" style="margin-top:10px;">
+            <button class="primary" data-voice="Kiểm tra đáp án" onclick="App.pa.checkSegment()">Kiểm tra</button>
+            <div class="spacer"></div>
+            <button class="ghost" data-voice="Bài khác" onclick="App.pa.next()">Bài khác</button>
+          </div>
+        `;
+        wrap.appendChild(box);
+        const shuffled = [...item.parts].sort(()=>Math.random()-0.5);
+        const partsDiv = box.querySelector('#parts');
+        shuffled.forEach((p)=>{
+          const el = document.createElement('div');
+          el.className='chip'; el.draggable = true; el.textContent = p; el.dataset.value = p;
+          el.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', p));
+          el.addEventListener('click', ()=> { // hỗ trợ chạm để đưa vào khung
+            const dz = box.querySelector('#dz'); const chip = document.createElement('div');
+            chip.className='chip'; chip.textContent = p; chip.dataset.value=p; chip.onclick = ()=> chip.remove(); dz.appendChild(chip);
+          });
+          partsDiv.appendChild(el);
+        });
+        const dz = box.querySelector('#dz');
+        dz.addEventListener('dragover', e => e.preventDefault());
+        dz.addEventListener('drop', e => { e.preventDefault(); const val = e.dataTransfer.getData('text/plain'); const chip = document.createElement('div'); chip.className='chip'; chip.textContent = val; chip.dataset.value = val; chip.onclick = () => chip.remove(); dz.appendChild(chip); });
+
+        if (AppState.childMode) Coach.say('Kéo hoặc chạm để đưa mảnh vào khung. Ráp thành từ ở trên.');
+      }
+      else if (item.type === 'tone'){
+        const box = document.createElement('div');
+        box.className = 'section';
+        box.innerHTML = `
+          <div class="row">
+            <div style="font-weight:700;">Chọn thanh điệu đúng</div>
+            <div class="spacer"></div>
+            <button class="tts" data-voice="Nghe mẫu đúng" onclick="TTS.speak('${item.correct}', ${AppState.learner.ttsRate || 0.9})">🔊</button>
+          </div>
+          <div class="big-text" style="margin-top:8px;">Gốc: <span class="token">${item.base}</span></div>
+          <div class="inline-buttons" id="toneOps" style="margin-top:8px;"></div>
+          <div class="row" style="margin-top:10px;">
+            <button class="ghost" data-voice="Bài khác" onclick="App.pa.next()">Bài khác</button>
+          </div>
+        `;
+        wrap.appendChild(box);
+        const ops = box.querySelector('#toneOps');
+        item.options.forEach(opt=>{
+          const btn = document.createElement('button');
+          btn.textContent = opt;
+          btn.setAttribute('data-voice', `Chọn ${opt}`);
+          btn.onclick = ()=>{
+            const ok = opt===item.correct;
+            speakFeedback(ok ? 'Đúng rồi' : 'Chưa đúng, con thử lại');
+            if (ok) App.pa.next();
+          };
+          btn.className = 'token ' + toneClass(opt);
+          ops.appendChild(btn);
+        });
+        if (AppState.childMode) Coach.say('Chọn từ có thanh đúng.');
+      }
+      else if (item.type === 'pair'){
+        const target = item.pair[item.correctIndex];
+        const box = document.createElement('div');
+        box.className = 'section';
+        box.dataset.correct = String(item.correctIndex);
+        box.innerHTML = `
+          <div class="row">
+            <div style="font-weight:700;">Cặp tối thiểu (${item.focus || ''}) – Nghe và chọn đúng</div>
+            <div class="spacer"></div>
+            <button class="tts" data-voice="Nghe từ cần chọn" onclick="TTS.speak('${target}', ${AppState.learner.ttsRate || 0.9})">🔊</button>
+          </div>
+          <div class="inline-buttons" style="margin-top:8px;">
+            <button data-voice="Chọn ${item.pair[0]}" onclick="App.pa.answerPair(0)">${item.pair[0]}</button>
+            <button data-voice="Chọn ${item.pair[1]}" onclick="App.pa.answerPair(1)">${item.pair[1]}</button>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="ghost" data-voice="Bài khác" onclick="App.pa.next()">Bài khác</button>
+          </div>
+        `;
+        wrap.appendChild(box);
+        if (AppState.childMode) Coach.say('Nghe và chạm vào từ con nghe được.');
+      }
+      VoiceUI.attachAll();
+    },
+    checkSegment(){
+      const item = PA_ITEMS[this.idx % PA_ITEMS.length];
+      const vals = Array.from(document.querySelectorAll('#dz .chip')).map(x=>x.dataset.value);
+      const ok = vals.join('') === item.parts.join('');
+      speakFeedback(ok ? 'Đúng rồi' : 'Chưa đúng, con thử sắp xếp lại');
+      if (ok) this.next();
+    },
+    answerPair(i){
+      const container = document.getElementById('pa-container');
+      const box = container.querySelector('[data-correct]');
+      const correct = box ? +box.dataset.correct : null;
+      if (i===correct) { speakFeedback('Đúng'); this.next(); } else speakFeedback('Chưa đúng, thử nghe lại nhé');
+    },
+    next(){ this.idx = (this.idx+1)%PA_ITEMS.length; this.render(); }
+  },
+
+  /* ===== CARDS ===== */
+  cards: {
+    current:null,
+    dueList(){
+      const deck = AppState.cardDeck;
+      return CARDS.map(c => ({...c, _deck: deck[c.id]})).sort((a,b) => (a._deck?.due ?? 0) - (b._deck?.due ?? 0));
+    },
+    render(){
+      const wrap = document.getElementById('cards-container');
+      const list = this.dueList();
+      const next = list[0];
+      this.current = next;
+      if (!next){ wrap.textContent='Không có thẻ nào.'; return; }
+      const dueIn = Math.max(0, next._deck.due - now());
+      wrap.innerHTML = `
+        <div class="big-text"><span class="token ${toneClass(next.text)}">${next.text}</span></div>
+        <div class="inline-buttons" style="margin-top:10px;">
+          <button class="tts" data-voice="Nghe từ" onclick="TTS.speak('${next.text}', ${AppState.learner.ttsRate || 0.9})">🔊 Nghe</button>
+          <button class="ghost" data-voice="Bỏ qua thẻ này" onclick="App.cards.nextCard()">Bỏ qua</button>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <div class="spacer"></div>
+          <button onclick="App.cards.grade(5)" class="primary" data-voice="Đánh giá dễ">Dễ</button>
+          <button onclick="App.cards.grade(3)" data-voice="Đánh giá vừa">Vừa</button>
+          <button onclick="App.cards.grade(1)" class="danger" data-voice="Đánh giá khó">Khó</button>
+        </div>
+        <div class="note" style="margin-top:10px;">Thời điểm ôn tiếp: ${dueIn ? 'chưa đến hạn' : 'đã đến'}</div>
+      `;
+      VoiceUI.attachAll();
+      if (AppState.childMode) setTimeout(()=> TTS.speak(next.text, AppState.learner.ttsRate || 0.9), 300);
+    },
+    grade(q){
+      const c = this.current; if (!c) return;
+      AppState.cardDeck[c.id] = srReview(AppState.cardDeck[c.id], q);
+      Store.set('cards', AppState.cardDeck);
+      speakFeedback(q>=5 ? 'Dễ' : (q>=3 ? 'Vừa' : 'Khó'));
+      App.addStar(1);
+      this.nextCard();
+    },
+    nextCard(){ this.render(); }
+  },
+
+  /* ===== READING ===== */
+  reading: {
+    level: AppState.learner.level || 1,
+    passage: null, started: false, startTime: 0, timerId: null, usedTTS: 0,
+    markMode: 'normal', errors: {}, tokenElems: [], _sessionTemp: null, _errTarget: null,
+    rulerOn: false, rulerY: 0,
+    init(){
+      const levels = Array.from(new Set(PASSAGES.map(p=>p.level))).sort((a,b)=>a-b);
+      const sel = document.getElementById('selLevel');
+      if (sel) { sel.value = String(this.level || levels[0]); this.chooseLevel(sel.value); }
+      const btnF = document.getElementById('btnFocus');
+      if (btnF) btnF.textContent = 'Chế độ 1 dòng: ' + (AppState.childMode?'Bật':'Tắt');
+      if (AppState.childMode) this.ensureFocusOn();
+      this.markMode = AppState.childMode ? 'error' : 'normal';
+      this.errors = {};
+      const sW = document.getElementById('statWCPM'); if (sW) sW.textContent='—';
+      const sA = document.getElementById('statAcc'); if (sA) sA.textContent='—';
+      const t = document.getElementById('timer'); if (t) t.textContent='00:00';
+
+      // Ruler button text
+      const bR = document.getElementById('btnRuler');
+      if (bR) bR.textContent = 'Thước dòng: ' + (this.rulerOn ? 'Bật' : 'Tắt');
+    },
+    ensureFocusOn(){
+      const pv = document.getElementById('passageView');
+      pv.style.maxHeight = '3.4em'; pv.style.overflow = 'hidden';
+      pv.style.maskImage = 'linear-gradient(180deg, black 60%, transparent 100%)';
+      const btnF = document.getElementById('btnFocus');
+      if (btnF) btnF.textContent = 'Chế độ 1 dòng: Bật';
+    },
+    chooseLevel(lv){
+      this.level = +lv;
+      const candidates = PASSAGES.filter(p=>p.level===this.level);
+      this.passage = candidates[0] || PASSAGES[0];
+      this.renderPassage();
+    },
+    renderPassage(){
+      const view = document.getElementById('passageView');
+      view.innerHTML = '';
+      const tokens = wordsOf(this.passage.text);
+      this.tokenElems = tokens.map((w,i)=>{
+        const span = document.createElement('span');
+        span.className = 'token ' + toneClass(w);
+        span.textContent = w + ' ';
+        span.dataset.idx = i;
+        span.onclick = () => this.onTokenClick(i, span);
+        span.oncontextmenu = (e)=> { e.preventDefault(); this.openErrMenu(i); };
+        span.onpointerdown = ()=> { if (VoiceUI.enabled) TTS.speak(w, AppState.learner.ttsRate || 0.9); };
+        view.appendChild(span);
+        return span;
+      });
+      // Ruler
+      let ruler = document.getElementById('rulerBar');
+      if (!ruler){ ruler = document.createElement('div'); ruler.id = 'rulerBar'; ruler.className = 'ruler'; view.appendChild(ruler); }
+      ruler.style.display = this.rulerOn ? '' : 'none';
+      this.rulerY = this.rulerY || 0;
+      ruler.style.transform = `translateY(${this.rulerY}px)`;
+
+      // Click vùng trống để đặt thước dòng
+      view.addEventListener('pointerdown', (e)=>{
+        if (!this.rulerOn) return;
+        if (e.target.id === 'passageView'){ // chỉ khi chạm vùng trống
+          const rect = view.getBoundingClientRect();
+          const y = e.clientY - rect.top - (view.scrollTop || 0);
+          this.setRulerAt(y - parseFloat(getComputedStyle(ruler).height)/2);
+        }
+      });
+
+      const sec = document.getElementById('compSection');
+      if (sec) sec.style.display='none';
+      const qWrap = document.getElementById('questions');
+      if (qWrap) qWrap.innerHTML='';
+      VoiceUI.attachAll();
+    },
+    toggleRuler(){
+      this.rulerOn = !this.rulerOn;
+      const ruler = document.getElementById('rulerBar');
+      if (ruler) ruler.style.display = this.rulerOn ? '' : 'none';
+      const bR = document.getElementById('btnRuler');
+      if (bR) bR.textContent = 'Thước dòng: ' + (this.rulerOn ? 'Bật' : 'Tắt');
+      VoiceUI.say(this.rulerOn ? 'Đã bật thước dòng' : 'Đã tắt thước dòng');
+    },
+    moveRuler(dir){ // -1 lên, 1 xuống
+      if (!this.rulerOn) return;
+      const step = 24; // px
+      this.setRulerAt(this.rulerY + dir*step);
+    },
+    setRulerAt(y){
+      const view = document.getElementById('passageView');
+      const ruler = document.getElementById('rulerBar');
+      if (!ruler || !view) return;
+      const maxY = Math.max(0, view.clientHeight - ruler.clientHeight);
+      this.rulerY = Math.max(0, Math.min(maxY, y));
+      ruler.style.transform = `translateY(${this.rulerY}px)`;
+    },
+    onTokenClick(i, el){
+      if (this.markMode!=='error') return;
+      if (this.errors[i]) { delete this.errors[i]; el.style.outline = 'none'; }
+      else { this.errors[i] = { type: 'other' }; el.style.outline = '3px solid var(--danger)'; }
+      this.updateStatsLive();
+    },
+    openErrMenu(i){
+      if (this.markMode!=='error') return;
+      this._errTarget = i; document.getElementById('errorMenu').classList.add('active');
+    },
+    setErrType(t){
+      if (this._errTarget==null) return;
+      this.errors[this._errTarget] = { type: t };
+      const el = this.tokenElems[this._errTarget]; if (el) el.style.outline = '3px solid var(--danger)';
+      document.getElementById('errorMenu').classList.remove('active');
+      this.updateStatsLive();
+    },
+    markMode(mode){
+      this.markMode = mode;
+      const be = document.getElementById('btnErr'); const bn = document.getElementById('btnNorm');
+      if (be) be.className = mode==='error'? 'hint' : 'ghost';
+      if (bn) bn.className = mode==='normal'? 'hint' : 'ghost';
+      VoiceUI.say(mode==='error' ? 'Đang ở chế độ đánh dấu lỗi' : 'Đang ở chế độ bình thường');
+    },
+    toggleFocus(){
+      const pv = document.getElementById('passageView');
+      const isOne = pv.style.maxHeight;
+      if (isOne){ pv.style.maxHeight = ''; pv.style.overflow = ''; pv.style.maskImage = ''; const btnF = document.getElementById('btnFocus'); if (btnF) btnF.textContent = 'Chế độ 1 dòng: Tắt'; }
+      else { this.ensureFocusOn(); }
+    },
+    speakPassage(){ this.usedTTS++; TTS.speak(this.passage.text, AppState.learner.ttsRate || 0.9); },
+    start(){
+      if (this.started) return;
+      this.started = true; this.startTime = now(); this.errors = {};
+      this.updateTimer();
+      const bs = document.getElementById('btnStartRead'); const be = document.getElementById('btnStopRead');
+      if (bs) bs.disabled = true; if (be) be.disabled = false;
+      this.markMode = 'error';
+      const b1 = document.getElementById('btnErr'); const b2 = document.getElementById('btnNorm');
+      if (b1) b1.className = 'hint'; if (b2) b2.className = 'ghost';
+      speakFeedback('Bắt đầu tính giờ. Cố gắng đọc đều nhé');
+    },
+    stop(){
+      if (!this.started) return;
+      this.started = false; clearTimeout(this.timerId);
+      const bs = document.getElementById('btnStartRead'); const be = document.getElementById('btnStopRead');
+      if (bs) bs.disabled = false; if (be) be.disabled = true;
+
+      const dur = now() - this.startTime; const total = wordsOf(this.passage.text).length;
+      const wrong = Object.keys(this.errors).length; const correct = Math.max(0, total - wrong);
+      const minutes = Math.max(0.5, dur/60000);
+      const wcpm = Math.round(correct / minutes); const acc = +(correct/total).toFixed(3);
+
+      this.renderQuestions();
+      this._sessionTemp = { dur, total, correct, wcpm, acc };
+      const sW = document.getElementById('statWCPM'); if (sW) sW.textContent = wcpm;
+      const sA = document.getElementById('statAcc'); if (sA) sA.textContent = (acc*100).toFixed(0) + '%';
+      speakFeedback(`Đã dừng. Tốc độ ${wcpm} từ một phút. Chính xác ${Math.round(acc*100)} phần trăm. Trả lời câu hỏi nhé.`);
+    },
+    updateTimer(){
+      if (!this.started) return;
+      const t = now() - this.startTime; const el = document.getElementById('timer'); if (el) el.textContent = fmtTime(t);
+      this.timerId = setTimeout(()=> this.updateTimer(), 200); this.updateStatsLive();
+    },
+    updateStatsLive(){
+      if (!this.started) return;
+      const dur = now() - this.startTime; const total = wordsOf(this.passage.text).length;
+      const wrong = Object.keys(this.errors).length; const correct = Math.max(0, total - wrong);
+      const minutes = Math.max(0.5, dur/60000); const wcpm = Math.round(correct / minutes);
+      const acc = +(correct/total).toFixed(3);
+      const sW = document.getElementById('statWCPM'); if (sW) sW.textContent = wcpm;
+      const sA = document.getElementById('statAcc'); if (sA) sA.textContent = (acc*100).toFixed(0) + '%';
+    },
+    toggleRec(){
+      const btn = document.getElementById('btnRec');
+      if (!Recorder.recording && !Recorder.lastBlob){
+        Recorder.toggle(); if (btn) btn.textContent = 'Đang ghi... Nhấn để dừng';
+      } else if (Recorder.recording){
+        Recorder.stop(); if (btn) btn.textContent = 'Nghe lại bản ghi';
+      } else { Recorder.play(); }
+    },
+    renderQuestions(){
+      const sec = document.getElementById('compSection');
+      const qWrap = document.getElementById('questions'); if (!qWrap || !sec) return;
+      qWrap.innerHTML = '';
+      for (const [i,q] of this.passage.questions.entries()){
+        const div = document.createElement('div'); div.className = 'question';
+        div.innerHTML = `<div><b>Câu ${i+1}:</b> ${q.q}</div>`;
+        const opts = document.createElement('div'); opts.className='inline-buttons';
+        q.choices.forEach((c, idx)=>{
+          const b = document.createElement('button');
+          b.textContent = c;
+          b.setAttribute('data-voice', `Chọn đáp án ${c}`);
+          b.onclick = ()=> { div.dataset.sel = idx; Array.from(opts.children).forEach(ch => ch.style.outline='none'); b.style.outline = '2px solid var(--primary)'; };
+          opts.appendChild(b);
+        });
+        div.appendChild(opts); qWrap.appendChild(div);
+      }
+      sec.style.display = '';
+      VoiceUI.attachAll();
+    },
+    finishComp(){
+      const chosen = Array.from(document.querySelectorAll('#questions .question')).map((div,i)=>{
+        const sel = +(div.dataset.sel ?? -1); const correct = this.passage.questions[i].ans;
+        return { sel, correct };
+      });
+      const compCorrect = chosen.filter(x=>x.sel===x.correct).length; const compTotal = this.passage.questions.length;
+
+      const temp = this._sessionTemp || {};
+      const errorsByType = { tone:0, sx:0, chtr:0, omission:0, insertion:0, other:0 };
+      Object.values(this.errors).forEach(e => { if (errorsByType[e.type]!=null) errorsByType[e.type]++; else errorsByType.other++; });
+
+      const log = {
+        type: 'reading',
+        learnerId: AppState.learner.id || '',
+        sessionId: Math.random().toString(36).slice(2,10),
+        ts: now(),
+        passageId: this.passage.id,
+        level: this.level,
+        durationMs: temp.dur || 0,
+        totalWords: temp.total || 0,
+        correctWords: temp.correct || 0,
+        wcpm: temp.wcpm || 0,
+        accuracy: temp.acc || 0,
+        compCorrect, compTotal,
+        errorsByType, usedTTS: this.usedTTS || 0, scaffolds: []
+      };
+
+      AppState.logs.push(log); Store.set('logs', AppState.logs);
+
+      // Thưởng sao
+      const recent = AppState.logs.filter(x=>x.type==='reading').slice(-2);
+      const lastW = recent.length>=2 ? recent[recent.length-2].wcpm : 0;
+      if (log.accuracy >= 0.9 || (lastW && log.wcpm > lastW)) { App.addStar(1); }
+
+      alert(`Hoàn tất! WCPM: ${log.wcpm}, Chính xác: ${(log.accuracy*100).toFixed(0)}%, Hiểu: ${compCorrect}/${compTotal}`);
+      speakFeedback(`Hoàn thành bài đọc. Trả lời đúng ${compCorrect} trên ${compTotal}.`);
+
+      // Adaptive
+      AppState.learner.level = adaptivePlan(AppState.logs, AppState.learner.level).nextLevel; Store.set('learner', AppState.learner);
+      App.updateLearnerBadge(); App.updateNextLevelHint();
+
+      // Đồng bộ
+      Sync.enqueue(log);
+
+      // Reset
+      this.usedTTS = 0; this._sessionTemp = null;
+      const sec = document.getElementById('compSection'); if (sec) sec.style.display='none';
+      if (AppState.childMode) Coach.say('Con làm tốt lắm!');
+    }
+  },
+
+  /* ===== DASHBOARD ===== */
+  dashboard: {
+    render(){
+      const logs = AppState.logs.filter(x=>x.type==='reading');
+      const xs = logs.map(x=> new Date(x.ts).toLocaleDateString());
+      const wc = logs.map(x=> x.wcpm);
+      const ac = logs.map(x=> +(x.accuracy*100).toFixed(0));
+      const du = logs.map(x=> Math.round((x.durationMs||0)/1000));
+      const err = logs.reduce((acc, l) => {
+        for (const k of ['tone','sx','chtr','omission','insertion','other']){
+          acc[k] = (acc[k] || 0) + (l.errorsByType?.[k] || 0);
+        } return acc;
+      }, {});
+      drawLineChart(document.getElementById('chartWCPM'), xs, wc, '#2E7D32', 'WCPM');
+      drawLineChart(document.getElementById('chartACC'), xs, ac, '#6A1B9A', '% đúng');
+      drawLineChart(document.getElementById('chartDUR'), xs, du, '#1565C0', 'Giây');
+      drawLineChart(document.getElementById('chartERR'), Object.keys(err), Object.values(err), '#C62828', 'Tổng lỗi');
+      App.updateSyncStatus();
+      VoiceUI.attachAll();
+    }
+  }
+};
+
+window.addEventListener('load', () => { App.init(); });
+</script>
+</body>
+</html>
