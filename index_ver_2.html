@@ -31,24 +31,12 @@
     </div>
   </header>
 
-  <!-- Thanh dễ đọc -->
-  <section class="a11ybar">
-    <button class="ghost" id="btnDys" data-voice="Bật tắt chế độ dễ đọc">👁‍🗨 Dễ đọc: Tắt</button>
-    <div class="spacer"></div>
-    <div class="zoom">
-      <button class="ghost" id="btnFontDown" aria-label="Giảm cỡ chữ" data-voice="Giảm cỡ chữ">A−</button>
-      <span id="fontPct">100%</span>
-      <button class="ghost" id="btnFontUp" aria-label="Tăng cỡ chữ" data-voice="Tăng cỡ chữ">A+</button>
-    </div>
-    <button class="ghost" id="btnFocusLine" data-voice="Bật tắt con trỏ đọc theo dòng">🔎 Con trỏ: Tắt</button>
-  </section>
-
   <!-- HOME -->
   <section id="screen-home" class="screen active">
     <div class="home-grid">
       <div class="card lift">
         <h3>🎯 Luyện âm vị</h3>
-        <div class="note">Ghép âm – thanh điệu – cặp tối thiểu. Nút to, nghe trước rồi chọn.</div>
+        <div class="note">Kéo‑thả âm/tiếng, thanh điệu, cặp tối thiểu.</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('pa')" data-voice="Luyện âm vị. Bắt đầu">Bắt đầu</button>
           <button class="tts" onclick="App.speak('Luyện âm vị')" data-voice="Nghe hướng dẫn Luyện âm vị">🔊 Nghe</button>
@@ -57,32 +45,32 @@
 
       <div class="card lift">
         <h3>🃏 Thẻ từ</h3>
-        <div class="note">Ôn theo nhịp. Chạm “🔊” để nghe. Chọn Dễ/Vừa/Khó bằng nút màu.</div>
+        <div class="note">Lặp lại giãn cách; lọc theo nhóm lỗi (s/x, ch/tr, ...).</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('cards')" data-voice="Thẻ từ. Ôn tập">Ôn tập</button>
         </div>
       </div>
 
       <div class="card lift">
-        <h3>📖 Luyện đọc (4 bước)</h3>
-        <div class="note">B1 Chọn • B2 Đọc • B3 Đánh dấu • B4 Câu hỏi/Kết quả. Nút to, có lời nói dẫn đường.</div>
+        <h3>📖 Đọc đoạn</h3>
+        <div class="note">Đo WCPM, % đúng, hiểu nội dung; ghi âm – nghe lại.</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('reading')" data-voice="Đọc đoạn. Luyện đọc">Luyện đọc</button>
         </div>
       </div>
 
       <div class="card lift">
-        <h3>🎮 Trò chơi dễ hiểu</h3>
-        <div class="note">Hiện “Mục tiêu” rõ ràng, nghe mẫu, bóng đúng có vòng sáng.</div>
+        <h3>🎮 Trò chơi</h3>
+        <div class="note">Bóng bay âm vị: pop đúng thanh điệu/nhóm lỗi để ghi điểm.</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('game')" data-voice="Vào trò chơi">Chơi ngay</button>
-          <button class="tts" onclick="App.speak('Trong trò chơi, tìm đúng theo mục tiêu hiển thị. Bấm Nghe mẫu để nghe. Bóng đúng sẽ có vòng sáng.')" data-voice="Nghe hướng dẫn trò chơi">🔊 Nghe</button>
+          <button class="tts" onclick="App.speak('Trò chơi bóng bay âm vị. Chọn chế độ rồi bấm bắt đầu.')" data-voice="Nghe hướng dẫn trò chơi">🔊 Nghe</button>
         </div>
       </div>
 
       <div class="card lift">
         <h3>📊 Dashboard</h3>
-        <div class="note">Tiến bộ, lỗi theo loại, xuất CSV, đồng bộ.</div>
+        <div class="note">Biểu đồ tiến bộ, lỗi theo loại, xuất CSV, đồng bộ.</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('dashboard')" data-voice="Mở bảng điều khiển">Mở Dashboard</button>
         </div>
@@ -106,7 +94,7 @@
       <span class="badge">Âm vị học</span>
     </div>
     <div class="section lift" id="pa-container"></div>
-    <div class="help">Mẹo: Bấm “🔊” để nghe; nút to – chọn một lần. Có thể chạm giữ 0.4s để nghe tên nút.</div>
+    <div class="help">Mẹo: Nhấn “🔊” để nghe mẫu; kéo‑thả “hạt âm/tiếng” để ráp từ; hoặc chọn thanh điệu/cặp tối thiểu theo yêu cầu.</div>
   </section>
 
   <!-- Cards -->
@@ -128,28 +116,18 @@
     </div>
 
     <div class="section lift" id="cards-container"></div>
-    <div class="help">Chạm “🔊” để nghe rồi bấm Dễ/Vừa/Khó. Ứng dụng sẽ tự hẹn ngày ôn.</div>
+    <div class="help">- Lọc theo nhóm lỗi để tập trung mục tiêu. - “Cập nhật thẻ mới” sẽ tự thêm thẻ vừa bổ sung trong dữ liệu. - Đánh giá “Dễ/Vừa/Khó” để ứng dụng tự động hẹn ngày ôn.</div>
   </section>
 
-  <!-- Reading (4 bước) -->
+  <!-- Reading -->
   <section id="screen-reading" class="screen">
     <div class="row">
       <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
       <div class="spacer"></div>
-      <span class="badge">Luyện đọc (4 bước)</span>
+      <span class="badge">Đọc đoạn</span>
     </div>
 
     <div class="section lift">
-      <div class="stepper" id="readSteps">
-        <div class="step active" data-step="1"><span>1</span> Chọn</div>
-        <div class="step" data-step="2"><span>2</span> Đọc</div>
-        <div class="step" data-step="3"><span>3</span> Đánh dấu</div>
-        <div class="step" data-step="4"><span>4</span> Câu hỏi</div>
-      </div>
-    </div>
-
-    <!-- B1: Chọn -->
-    <div class="section lift" id="readStep1">
       <div class="row" style="gap:12px;">
         <label for="selLevel" style="margin:0;">Cấp độ:</label>
         <select id="selLevel" onchange="App.reading.chooseLevel(this.value)" aria-label="Chọn cấp độ"></select>
@@ -159,56 +137,32 @@
         <button class="ghost" onclick="App.reading.randomPassage()" data-voice="Chọn bài ngẫu nhiên">🔀 Ngẫu nhiên</button>
 
         <div class="spacer"></div>
+
         <div class="slider" data-voice="Điều chỉnh tốc độ giọng đọc">
           <span>🔊 Tốc độ</span>
           <input id="rateSlider" type="range" min="0.6" max="1.4" step="0.05" value="0.9"
-                 oninput="App.updateRateFromSlider(this.value)" />
+                 oninput="App.updateRateFromSlider(this.value)"
+                 onfocus="VoiceUI.speak('Thanh tốc độ giọng đọc')" />
           <span id="rateVal">0.90x</span>
         </div>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button class="primary" onclick="App.reading.goStep(2)" data-voice="Sang bước đọc">Tiếp tục</button>
+        <button class="ghost" onclick="App.reading.toggleFocus()" id="btnFocus" data-voice="Bật tắt chế độ một dòng">Chế độ 1 dòng: Tắt</button>
       </div>
     </div>
 
-    <!-- B2: Đọc -->
-    <div class="section lift" id="readStep2" style="display:none;">
-      <div class="row">
-        <button class="primary" id="btnStartRead" onclick="App.reading.start()" data-voice="Bắt đầu đọc và tính giờ">Bắt đầu</button>
-        <button id="btnStopRead" class="danger" onclick="App.reading.stop()" disabled data-voice="Kết thúc bài đọc">Kết thúc</button>
-        <button class="tts" onclick="App.reading.speakPassage()" data-voice="Nghe toàn bộ đoạn">🔊 Nghe đoạn</button>
-        <button class="record" id="btnRec" onclick="App.reading.toggleRec()" data-voice="Ghi âm giọng đọc hoặc nghe lại">Ghi âm</button>
-        <div class="spacer"></div>
-        <span class="stat">⏱️ <span id="timer">00:00</span></span>
-        <span class="stat">WCPM: <b id="statWCPM">—</b></span>
-        <span class="stat">% đúng: <b id="statAcc">—</b></span>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <button class="ghost" onclick="App.reading.goStep(1)" data-voice="Quay lại bước chọn">← Quay lại</button>
-        <div class="spacer"></div>
-        <button class="primary" onclick="App.reading.goStep(3)" data-voice="Sang bước đánh dấu lỗi">Sang bước 3</button>
-      </div>
-    </div>
-
-    <!-- B3: Đánh dấu -->
-    <div class="section lift" id="readStep3" style="display:none;">
-      <div class="row">
+    <div class="section lift">
+      <div id="passageView" class="big-text"></div>
+      <div class="inline-buttons">
         <button class="hint" onclick="App.reading.markMode('error')" id="btnErr" data-voice="Chế độ đánh dấu lỗi">Đánh dấu lỗi</button>
         <button class="ghost" onclick="App.reading.markMode('normal')" id="btnNorm" data-voice="Chế độ bình thường">Chế độ bình thường</button>
-        <button class="ghost" onclick="App.reading.clearMarks()" data-voice="Xóa các dấu lỗi">🧹 Xóa dấu</button>
-        <div class="spacer"></div>
-        <button class="primary" onclick="App.reading.goStep(4)" data-voice="Sang câu hỏi hiểu nội dung">Sang bước 4</button>
+        <button class="ghost" onclick="App.reading.clearMarks()" data-voice="Xóa các dấu lỗi">🧹 Xóa dấu lỗi</button>
       </div>
-      <div id="passageView" class="big-text" style="margin-top:10px;"></div>
-      <div class="help">Chạm vào từ sai để đánh dấu; chạm lại để bỏ. Nhấn giữ để chọn loại lỗi (thanh điệu / s‑x / ch‑tr / bỏ âm / thêm âm / khác).</div>
+      <div class="help">Chạm vào từ để đánh dấu lỗi; chạm lại để bỏ. Nhấn và giữ để chọn loại lỗi. Chạm vào từ để nghe lại phát âm.</div>
     </div>
 
-    <!-- B4: Câu hỏi -->
-    <div id="readStep4" class="section lift" style="display:none;">
+    <div id="compSection" class="section lift" style="display:none;">
       <h3>Câu hỏi hiểu nội dung</h3>
       <div id="questions"></div>
       <div class="row" style="margin-top:8px;">
-        <button class="ghost" onclick="App.reading.goStep(3)" data-voice="Quay lại bước đánh dấu">← Quay lại</button>
         <div class="spacer"></div>
         <button class="primary" onclick="App.reading.finishComp()" data-voice="Hoàn tất câu hỏi">Hoàn tất</button>
       </div>
@@ -224,19 +178,9 @@
     </div>
 
     <div class="section lift">
-      <div class="row" style="gap:10px; align-items:center;">
-        <div class="targetbox" id="gameTargetBox">
-          <div><b>Mục tiêu:</b> <span id="gameTargetText">—</span></div>
-          <div class="inline-buttons" style="margin-top:6px;">
-            <button class="tts" id="btnGameSample" data-voice="Nghe mẫu mục tiêu">🔊 Nghe mẫu</button>
-            <button class="ghost" id="btnGameExplain" data-voice="Giải thích mục tiêu">❓ Giải thích</button>
-          </div>
-        </div>
-
-        <div class="spacer"></div>
-
+      <div class="row game-hud">
         <div class="row" style="gap:8px;">
-          <label style="margin:0;">Chế độ:</label>
+          <label for="selGameMode" style="margin:0;">Chế độ:</label>
           <select id="selGameMode" aria-label="Chọn chế độ">
             <option value="tone">Theo thanh điệu</option>
             <option value="tag">Theo nhóm lỗi</option>
@@ -266,16 +210,15 @@
           <span class="stat">🏆 Điểm: <b id="gScore">0</b></span>
           <span class="stat">⏱️ <b id="gTime">60</b>s</span>
           <span class="stat">❤️ <b id="gLives">3</b></span>
-          <button class="primary" id="btnGameStart" data-voice="Bắt đầu chơi">Bắt đầu</button>
-          <button class="ghost" id="btnGameStop" disabled>Dừng</button>
-          <button class="ghost" id="btnGameTrain" data-voice="Bật chế độ tập thử">👟 Tập thử</button>
+          <button class="primary" id="btnGameStart" onclick="App.game.start()">Bắt đầu</button>
+          <button class="ghost" id="btnGameStop" onclick="App.game.stop()" disabled>Dừng</button>
         </div>
       </div>
     </div>
 
     <div class="section lift">
       <canvas id="gameCanvas" width="900" height="420" aria-label="Sân chơi bóng bay"></canvas>
-      <div class="help">Mẹo: Bóng đúng có <b>vòng sáng</b> quanh bóng. Bấm vào bóng để nghe từ; nghe kỹ thanh/nhóm rồi bấm.</div>
+      <div class="help">Mẹo: Pop bóng đúng theo chế độ. Bấm vào bóng để nghe từ và ghi điểm. Sai trừ mạng!</div>
     </div>
   </section>
 
@@ -313,21 +256,26 @@
         <div class="spacer"></div>
         <button class="danger" onclick="App.resetConfirm()" data-voice="Xóa dữ liệu trên thiết bị này">Xóa dữ liệu (thiết bị này)</button>
       </div>
-      <div class="help">CSV chỉ chứa mã ẩn danh cùng các chỉ số đánh giá (không chứa Họ tên).</div>
+      <div class="help">CSV mở bằng Excel/Google Sheets. Dữ liệu chỉ lưu trên thiết bị này trừ khi bạn bật Đồng bộ.</div>
     </div>
 
     <div class="section lift">
       <h3>Đồng bộ Google Drive</h3>
-      <div class="row">
-        <div class="spacer"></div>
-        <span class="badge" id="syncStatus">Trạng thái: chưa cấu hình</span>
+      <div class="grid-2">
+        <div>
+          <label>Đồng bộ (Apps Script URL)</label>
+          <input type="url" id="inpSyncUrl" placeholder="https://script.google.com/macros/s/XXX/exec" />
+        </div>
+        <div>
+          <label>Mật mã bí mật (SECRET)</label>
+          <input type="text" id="inpSyncSecret" placeholder="docde-secret-2025" />
+        </div>
       </div>
-      <div class="inline-buttons" style="margin-top:10px;">
-        <button onclick="Sync.flush()" data-voice="Đồng bộ dữ liệu ngay">Đồng bộ ngay</button>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="App.saveSync()" data-voice="Lưu cài đặt đồng bộ">Lưu đồng bộ</button>
         <button class="ghost" onclick="App.testSync()" data-voice="Kiểm tra kết nối đồng bộ">Kiểm tra kết nối</button>
-        <button class="ghost" onclick="App.showSyncHelp()" data-voice="Hướng dẫn thiết lập đồng bộ">Hướng dẫn thiết lập</button>
       </div>
-      <div class="help">Ứng dụng gửi chỉ số đọc (WCPM, % đúng, hiểu, lỗi, thời lượng) tới Apps Script của bạn.</div>
+      <div class="help">Ứng dụng chỉ gửi các chỉ số đánh giá (WCPM, % đúng, hiểu, lỗi, thời lượng). Họ tên/tuổi/lớp không gửi đi.</div>
     </div>
   </section>
 
@@ -343,11 +291,11 @@
         <button onclick="App.exportCSV()" data-voice="Tải tệp CSV">Tải CSV</button>
         <button class="ghost" onclick="App.copyCSV()" data-voice="Sao chép CSV">Sao chép CSV</button>
       </div>
-      <div class="help">Dán vào Google Sheets để theo dõi dài hạn.</div>
+      <div class="help">Dán vào Google Sheets để theo dõi dài hạn (không chứa Họ tên).</div>
     </div>
   </section>
 
-  <!-- Settings -->
+  <!-- Settings (bảo mật – chỉ nhập Họ tên, mã hệ thống tự cấp) -->
   <section id="screen-settings" class="screen">
     <div class="row">
       <button onclick="App.nav('home')" data-voice="Về trang chính">← Về trang chính</button>
@@ -413,7 +361,7 @@
         <button onclick="App.saveSync()" data-voice="Lưu cài đặt đồng bộ">Lưu đồng bộ</button>
         <button class="ghost" onclick="App.testSync()" data-voice="Kiểm tra kết nối đồng bộ">Kiểm tra kết nối</button>
       </div>
-      <div class="help">Dán URL Web App từ Google Apps Script. SECRET phải trùng trong Script.</div>
+      <div class="help">Dán URL Web App từ Google Apps Script. SECRET phải trùng trong Script. Họ tên không bao giờ được gửi đi.</div>
     </div>
   </section>
 
@@ -422,11 +370,11 @@
     <div class="dialog">
       <h3>Hướng dẫn nhanh</h3>
       <ul>
-        <li>Âm vị: 5–7 phút, 6–8 mục tiêu theo lỗi hay gặp. Nút to, nghe trước rồi bấm.</li>
-        <li>Thẻ từ: 5 phút, 10–15 thẻ. Chạm “🔊” → chọn Dễ/Vừa/Khó.</li>
-        <li>Đọc đoạn (4 bước): B1 Chọn • B2 Bắt đầu/Kết thúc • B3 Đánh dấu lỗi • B4 Câu hỏi/Kết quả.</li>
-        <li>Trò chơi: xem “Mục tiêu”, bấm “🔊 Nghe mẫu”, bóng đúng có vòng sáng.</li>
-        <li>Giọng nói trợ giúp: nhấn giữ 0.4 giây lên nút để nghe tên.</li>
+        <li>Âm vị: 5–7 phút, 6–8 mục tiêu theo lỗi hay gặp.</li>
+        <li>Thẻ từ: 5 phút, 10–15 thẻ (Dễ/Vừa/Khó).</li>
+        <li>Đọc đoạn: 3 lần/đoạn, đo WCPM & % đúng; làm 2–3 câu hỏi hiểu.</li>
+        <li>Trò chơi: Chọn chế độ rồi “Bắt đầu”. Pop bóng đúng để ghi điểm và nhận sticker.</li>
+        <li>Giọng nói trợ giúp: Nhấn giữ 0.4 giây lên nút để nghe tên trước khi bấm.</li>
       </ul>
       <div class="row">
         <div class="spacer"></div>
@@ -456,11 +404,11 @@
       <div class="row" style="margin-top:10px;">
         <button class="primary" onclick="App.finishOnboard()" data-voice="Bắt đầu sử dụng">Bắt đầu</button>
       </div>
-      <div class="help">Ứng dụng tự cấp mã ẩn danh và chỉ gửi các chỉ số đánh giá. Họ tên chỉ lưu trên máy.</div>
+      <div class="help">Ứng dụng tự cấp mã ẩn danh và chỉ gửi các chỉ số đánh giá hiệu quả. Họ tên chỉ lưu trên máy.</div>
     </div>
   </div>
 
-  <!-- Menu lỗi -->
+  <!-- Chọn loại lỗi -->
   <div id="errorMenu" class="modal" style="background: transparent;">
     <div class="dialog" style="max-width:380px;">
       <h3>Chọn loại lỗi</h3>
@@ -519,7 +467,6 @@
 <script src="./app/modules/game.js" defer></script>
 
 <script src="./app/effects.js" defer></script>
-<script src="./app/a11y.js" defer></script>
 <script src="./app/app.js" defer></script>
 <noscript>Ứng dụng cần JavaScript để hoạt động.</noscript>
 </body>
