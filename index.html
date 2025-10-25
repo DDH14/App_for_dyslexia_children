@@ -5,14 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Đọc Dễ – Hỗ trợ trẻ rối loạn đọc</title>
   <meta name="description" content="Luyện âm vị, thẻ từ, đọc trôi chảy (WCPM), hiểu nội dung; TTS, ghi âm, Voice UI, dashboard, xuất CSV, đồng bộ Google Drive." />
-  <link rel="manifest" href="manifest.webmanifest">
+  <!-- Manifest: đặt tạm, tự chỉnh đúng đường dẫn bằng script bên dưới -->
+  <link id="manifestLink" rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#FFF3D6" />
-  <link rel="icon" href="data:image/svg+xml;utf8,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'>
-    <rect width='128' height='128' fill='%23FFF3D6'/>
-    <text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-family='sans-serif' fill='%23111'>Đ</text>
-  </svg>">
+  <!-- Favicon (data URI gọn 1 dòng để tránh lỗi phân tích) -->
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><rect width='128' height='128' fill='%23FFF3D6'/><text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-family='sans-serif' fill='%23111'>Đ</text></svg>">
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // Sửa lỗi 404 manifest trên GitHub Pages: tự xác định base path (tên repo) và gán đúng href
+    (function fixManifestPath(){
+      try{
+        var link = document.getElementById('manifestLink');
+        if (!link) return;
+        // Nếu chạy trên *.github.io/[repo]/..., base là "/[repo]/", ngược lại (localhost) là "/"
+        var parts = location.pathname.split('/').filter(Boolean);
+        var base = (location.hostname.endsWith('.github.io') && parts.length > 0) ? ('/' + parts[0] + '/') : '/';
+        link.setAttribute('href', base + 'manifest.webmanifest');
+      }catch(_){/*no-op*/}
+    })();
+  </script>
 </head>
 <body>
 <div class="app">
@@ -72,7 +83,7 @@
       </div>
 
       <div class="card lift">
-        <h3>🎮 Trò chơi dễ hiểu</h3>
+        <h3>🎮 Trò chơi </h3>
         <div class="note">Hiện “Mục tiêu” rõ ràng, nghe mẫu, bóng đúng có vòng sáng.</div>
         <div class="inline-buttons" style="margin-top:10px;">
           <button class="primary" onclick="App.nav('game')" data-voice="Vào trò chơi">Chơi ngay</button>
@@ -131,6 +142,7 @@
     <div class="help">Chạm “🔊” để nghe rồi bấm Dễ/Vừa/Khó. Ứng dụng sẽ tự hẹn ngày ôn.</div>
   </section>
 
+
   <!-- Reading (4 bước) -->
   <section id="screen-reading" class="screen">
     <div class="row">
@@ -171,7 +183,7 @@
       </div>
     </div>
 
-    <!-- B2: Đọc -->
+    <!-- B2: Đọc (hiển thị đoạn dễ đọc) -->
     <div class="section lift" id="readStep2" style="display:none;">
       <div class="row">
         <button class="primary" id="btnStartRead" onclick="App.reading.start()" data-voice="Bắt đầu đọc và tính giờ">Bắt đầu</button>
@@ -183,6 +195,9 @@
         <span class="stat">WCPM: <b id="statWCPM">—</b></span>
         <span class="stat">% đúng: <b id="statAcc">—</b></span>
       </div>
+      <!-- Đoạn văn dễ đọc cho dyslexia -->
+      <div id="passageText" class="big-text reading-plain" aria-label="Đoạn văn để đọc"></div>
+
       <div class="row" style="margin-top:10px;">
         <button class="ghost" onclick="App.reading.goStep(1)" data-voice="Quay lại bước chọn">← Quay lại</button>
         <div class="spacer"></div>
@@ -199,6 +214,7 @@
         <div class="spacer"></div>
         <button class="primary" onclick="App.reading.goStep(4)" data-voice="Sang câu hỏi hiểu nội dung">Sang bước 4</button>
       </div>
+      <!-- Đoạn văn có thể bấm vào từng từ để đánh dấu -->
       <div id="passageView" class="big-text" style="margin-top:10px;"></div>
       <div class="help">Chạm vào từ sai để đánh dấu; chạm lại để bỏ. Nhấn giữ để chọn loại lỗi (thanh điệu / s‑x / ch‑tr / bỏ âm / thêm âm / khác).</div>
     </div>
